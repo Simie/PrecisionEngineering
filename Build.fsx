@@ -9,7 +9,7 @@ open Fake.EnvironmentHelper;
 
 let buildDir = "./Build/"
 
-let installFolder = (environVar "LOCALAPPDATA") + "/Colossal Order/Cities_Skylines/Addons/Mods/RoadEngineer"
+let installFolder = (environVar "LOCALAPPDATA") + "/Colossal Order/Cities_Skylines/Addons/Mods/PrecisionEngineering"
 
 Target "Clean" (fun _ ->
     CleanDir buildDir
@@ -24,7 +24,7 @@ Target "Build" (fun _ ->
 Target "Install" (fun _ -> 
     
     mkdir (installFolder)
-    CopyFile installFolder (buildDir + "RoadEngineer.dll")
+    CopyFile installFolder (buildDir + "PrecisionEngineering.dll")
             
 )
 
