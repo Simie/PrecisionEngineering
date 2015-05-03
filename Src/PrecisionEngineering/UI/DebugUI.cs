@@ -22,9 +22,9 @@ namespace PrecisionEngineering.UI
 			base.Start();
 
 			this.backgroundSprite = "GenericPanel";
-
+			opacity = 0.7f;
 			this.width = 600;
-			this.height = 400;
+			this.height = 800;
 
 			this.relativePosition = new Vector3(10, 80f);
 
@@ -66,8 +66,6 @@ namespace PrecisionEngineering.UI
 					pt.m_direction));
 
 			}
-
-			txt.AppendLine();
 
 			if (Calculator.Measurements.Count == 0)
 				txt.AppendLine("No Measurements Available");

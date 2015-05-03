@@ -45,6 +45,8 @@ namespace PrecisionEngineering.UI
 			color = new Color32(255, 255, 255, 180);
 			processMarkup = true;
 
+			isInteractive = false;
+
 			//<color #87d3ff>Construction cost: 520</color>
 
 		}
