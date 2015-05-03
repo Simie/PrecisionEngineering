@@ -17,6 +17,8 @@ namespace PrecisionEngineering
 
 		private PrecisionCalculator _calculator;
 
+		private PrecisionUI _ui;
+
 		void Start()
 		{
 
@@ -29,7 +31,10 @@ namespace PrecisionEngineering
 
 			Debug.Log(string.Format("Net Tool: {0}", _netTool));
 
-			var ui = new PrecisionUI(_netToolProxy, _calculator);
+			_ui = new PrecisionUI();
+
+			if (Debug.Enabled)
+				_ui.CreateDebugUI(_netToolProxy, _calculator);
 
 		}
 
@@ -47,13 +52,24 @@ namespace PrecisionEngineering
 
 			base.EndOverlayImpl(cameraInfo);
 
+			_ui.ReleaseAll();
+
 			for (var i = 0; i < _calculator.Measurements.Count; i++) {
 
 				var m = _calculator.Measurements[i];
 
 				if (m is AngleMeasurement) {
-					Rendering.AngleRenderer.Render(cameraInfo, m as AngleMeasurement);
+
+					var am = m as AngleMeasurement;
+
+					Rendering.AngleRenderer.Render(cameraInfo, am);
+
+					var label = _ui.GetAngleLabel();
+					label.SetAngle(am.AngleSize);
+					label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
+
 					continue;
+
 				}
 
 				Debug.LogError("Measurement has no renderer: " + m.ToString());

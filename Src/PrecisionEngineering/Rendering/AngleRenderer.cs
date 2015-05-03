@@ -12,12 +12,20 @@ namespace PrecisionEngineering.Rendering
 	static class AngleRenderer
 	{
 
+		public const float AngleSize = 35f;
+
+		public static Vector3 GetLabelWorldPosition(AngleMeasurement angle)
+		{
+
+			return angle.AnglePosition + angle.AngleNormal*AngleSize;
+
+		}
+
 		public static void Render(RenderManager.CameraInfo cameraInfo, AngleMeasurement angle)
 		{
 
 			var renderManager = RenderManager.instance;
 
-			var angleSize = 35f;
 
 			var centreAngle = Vector3.Angle(Vector3.right, angle.AngleNormal);
 
@@ -25,7 +33,7 @@ namespace PrecisionEngineering.Rendering
 				centreAngle = -centreAngle;
 
 
-			var arcs = BezierUtil.CreateArc(angle.AnglePosition, angleSize,
+			var arcs = BezierUtil.CreateArc(angle.AnglePosition, AngleSize,
 				centreAngle - angle.AngleSize*.5f,
 				centreAngle + angle.AngleSize*.5f);
 

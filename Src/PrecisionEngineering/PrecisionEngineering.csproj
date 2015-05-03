@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Debug.cs" />
+    <Compile Include="UI\AngleLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />
     <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
