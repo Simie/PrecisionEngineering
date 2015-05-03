@@ -12,7 +12,7 @@ namespace PrecisionEngineering
 
 		public string Description
 		{
-			get { return "Tools for creating roads with precision."; }
+			get { return "Tools for creating roads with precision. Hold SHIFT to enable more information when placing roads."; }
 		}
 
 	}

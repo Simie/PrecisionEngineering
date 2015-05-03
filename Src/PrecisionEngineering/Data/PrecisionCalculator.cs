@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using PrecisionEngineering.Utilities;
 using UnityEngine;
 
 namespace PrecisionEngineering.Data
@@ -37,6 +38,9 @@ namespace PrecisionEngineering.Data
 
 			if (netTool.NodePositions.m_size > 1)
 				CalculateDistance(netTool);
+
+			if (netTool.NodePositions.m_size > 1)
+				CalculateNearbyNodes(netTool);
 
 		}
 
@@ -124,7 +128,7 @@ namespace PrecisionEngineering.Data
 			var sourceNode = NetManager.instance.m_nodes.m_buffer[sourceNodeId];
 			var firstNewNode = netTool.NodePositions[0];
 
-			var existingSegments = GetNodeSegments(sourceNode);
+			var existingSegments = NetNodeUtility.GetNodeSegments(sourceNode);
 
 			if (existingSegments.Count == 0)
 				return;
@@ -145,35 +149,64 @@ namespace PrecisionEngineering.Data
 
 		}
 
-		private List<NetSegment> _segmentList = new List<NetSegment>(8); 
+		private readonly ushort[] _segments = new ushort[16];
 
-		private List<NetSegment> GetNodeSegments(NetNode node)
+		private void CalculateNearbyNodes(NetToolProxy netTool)
 		{
 
-			_segmentList.Clear();
+			var lastNode = netTool.NodePositions[netTool.NodePositions.m_size - 1];
 
-			var list = _segmentList;
+			int count;
 
-			if (node.m_segment0 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment0]);
-			if (node.m_segment1 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment1]);
-			if (node.m_segment2 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment2]);
-			if (node.m_segment3 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment3]);
-			if (node.m_segment4 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment4]);
-			if (node.m_segment5 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment5]);
-			if (node.m_segment6 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment6]);
-			if (node.m_segment7 > 0)
-				list.Add(NetManager.instance.m_segments.m_buffer[node.m_segment7]);
+			NetManager.instance.GetClosestSegments(lastNode.m_position, _segments, out count);
 
-			return list;
+			if (count == 0)
+				return;
+
+			List<ushort> sourceNodeConnectedSegmentIds = null;
+
+			if (netTool.ControlPoints[0].m_node > 0) {
+
+				sourceNodeConnectedSegmentIds =
+					NetNodeUtility.GetNodeSegmentIds(NetManager.instance.m_nodes.m_buffer[netTool.ControlPoints[0].m_node]);
+
+			}
+
+			var p1 = lastNode.m_position;
+
+			var minDist = float.MaxValue;
+			var p = Vector3.zero;
+			var found = false;
+
+			for (var i = 0; i < count; i++) {
+
+				// Skip segments attached to the node we are building from
+				if (sourceNodeConnectedSegmentIds != null && sourceNodeConnectedSegmentIds.Contains(_segments[i]))
+					continue;
+
+				var s = NetManager.instance.m_segments.m_buffer[_segments[i]];
+
+				var p2 = s.GetClosestPosition(p1);
+
+				var dist = Vector3.Distance(p1, p2);
+
+				if (dist < minDist) {
+					minDist = dist;
+					p = p2;
+					found = true;
+				}
+
+			}
+
+			if (found) {
+
+				_measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true, p1, p,
+					MeasurementFlags.Secondary));
+
+			}
 
 		}
+
 
 	}
 }

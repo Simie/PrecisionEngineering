@@ -20,13 +20,14 @@ namespace PrecisionEngineering
 		private PrecisionCalculator _calculator;
 
 		private PrecisionUI _ui;
+		private bool _secondaryDetailEnabled;
 
 		void Start()
 		{
 
 			Debug.Log("Manager Start");
 
-			_netTool = Object.FindObjectOfType<NetTool>();
+			_netTool = FindObjectOfType<NetTool>();
 			_netToolProxy = new NetToolProxy(_netTool);
 
 			_calculator = new PrecisionCalculator();
@@ -56,13 +57,15 @@ namespace PrecisionEngineering
 
 			_ui.ReleaseAll();
 
-			var secondaryDetailEnabled = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+			_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+				? !_secondaryDetailEnabled
+				: _secondaryDetailEnabled;
 
 			for (var i = 0; i < _calculator.Measurements.Count; i++) {
 
 				var m = _calculator.Measurements[i];
 
-				if (m.Flags == MeasurementFlags.Secondary && !secondaryDetailEnabled)
+				if (m.Flags == MeasurementFlags.Secondary && !_secondaryDetailEnabled)
 					continue;
 
 				if (m is AngleMeasurement) {
