@@ -53,11 +53,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LoadingExtension.cs" />
-    <Compile Include="NetToolListener.cs" />
+    <Compile Include="Debug.cs" />
+    <Compile Include="Utilities\BezierUtil.cs" />
+    <Compile Include="Utilities\Vector3Extensions.cs" />
+    <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
+    <Compile Include="NetToolProxy.cs" />
+    <Compile Include="PrecisionCalculator.cs" />
+    <Compile Include="PrecisionEngineeringManager.cs" />
+    <Compile Include="Rendering\AngleRenderer.cs" />
+    <Compile Include="UI\DebugUI.cs" />
+    <Compile Include="UI\PrecisionUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PrecisionEngineeringMod.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
