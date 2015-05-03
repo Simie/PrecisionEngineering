@@ -1,68 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ColossalFramework;
 using UnityEngine;
 
-namespace PrecisionEngineering
+namespace PrecisionEngineering.Data
 {
-
-	enum MeasurementDetail
-	{
-
-		Common,
-		Extra
-
-	}
-
-	abstract class Measurement
-	{
-
-		public MeasurementDetail Detail { get; private set; }
-
-		protected Measurement(MeasurementDetail detail)
-		{
-			Detail = detail;
-		}
-
-	}
-
-	class AngleMeasurement : Measurement
-	{
-
-		public float AngleSize { get; private set; }
-
-		public Vector3 AnglePosition { get; private set; }
-
-		public Vector3 AngleNormal { get; private set; }
-
-		public AngleMeasurement(float size, Vector3 position, Vector3 normal, MeasurementDetail detail) : base(detail)
-		{
-			AngleSize = size;
-			AnglePosition = position;
-			AngleNormal = normal;
-		}
-
-		public override string ToString()
-		{
-			return
-				string.Format("Angle: {0}deg, @{1}, facing: {2}", AngleSize, AnglePosition, AngleNormal);
-		}
-
-	}
-
-	class DistanceMeasurement : Measurement
-	{
-
-
-		public DistanceMeasurement(MeasurementDetail detail)
-			: base(detail)
-		{
-			
-		}
-
-	}
 
 	class PrecisionCalculator
 	{
@@ -85,11 +26,42 @@ namespace PrecisionEngineering
 			if (!netTool.IsEnabled)
 				return;
 
+			//if (netTool.BuildErrors & ToolBase.ToolErrors.VisibleErrors != 0)
+			//	return;
+
 			if(netTool.ControlPointsCount > 0 && netTool.ControlPoints[0].m_segment > 0)
 				CalculateSegmentBranchAngles(netTool);
 
 			if (netTool.ControlPointsCount > 0 && netTool.ControlPoints[0].m_node > 0)
 				CalculateNodeBranchAngles(netTool);
+
+			if (netTool.NodePositions.m_size > 1)
+				CalculateDistance(netTool);
+
+		}
+
+		private void CalculateDistance(NetToolProxy netTool)
+		{
+
+			float length = 0;
+
+			var prevNodePosition = netTool.NodePositions[0].m_position;
+			var avg = prevNodePosition;
+
+			for (var i = 1; i < netTool.NodePositions.m_size; i++) {
+
+				var n = netTool.NodePositions[i];
+
+				length += Vector3.Distance(prevNodePosition, n.m_position);
+
+				prevNodePosition = n.m_position;
+				avg += n.m_position;
+
+				//netTool.ControlPoints[0]
+
+			}
+
+			_measurements.Add(new DistanceMeasurement(length, avg*1/netTool.NodePositions.m_size, MeasurementDetail.Primary));
 
 		}
 
@@ -123,10 +95,10 @@ namespace PrecisionEngineering
 			var otherAngleDirection = Vector3.Normalize(-sourceSegmentDirection + lineDirection);
 
 			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection,
-				angleSize > otherAngleSize ? MeasurementDetail.Extra : MeasurementDetail.Common));
+				angleSize > otherAngleSize ? MeasurementDetail.Secondary : MeasurementDetail.Primary));
 
 			_measurements.Add(new AngleMeasurement(otherAngleSize, sourceNode.m_position, otherAngleDirection,
-				angleSize > otherAngleSize ? MeasurementDetail.Common : MeasurementDetail.Extra));
+				angleSize > otherAngleSize ? MeasurementDetail.Primary : MeasurementDetail.Secondary));
 
 		}
 
@@ -168,7 +140,7 @@ namespace PrecisionEngineering
 			var angleSize = Vector3.Angle(firstNewNode.m_direction, nearestSegmentDirection);
 			var angleDirection = Vector3.Normalize(firstNewNode.m_direction + nearestSegmentDirection);
 
-			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementDetail.Common));
+			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementDetail.Primary));
 
 		}
 

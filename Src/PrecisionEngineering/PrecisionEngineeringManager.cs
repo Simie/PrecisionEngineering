@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PrecisionEngineering.Data;
 using PrecisionEngineering.UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -64,9 +65,22 @@ namespace PrecisionEngineering
 
 					Rendering.AngleRenderer.Render(cameraInfo, am);
 
-					var label = _ui.GetAngleLabel();
-					label.SetAngle(am.AngleSize);
+					var label = _ui.GetMeasurementLabel();
+					label.SetValue(am.AngleSize, "°");
 					label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
+
+					continue;
+
+				}
+
+				if (m is DistanceMeasurement) {
+
+
+					var dm = m as DistanceMeasurement;
+
+					var label = _ui.GetMeasurementLabel();
+					label.SetValue(dm.Length, "m");
+					label.SetWorldPosition(cameraInfo, dm.Position);
 
 					continue;
 

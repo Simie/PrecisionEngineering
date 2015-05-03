@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ColossalFramework;
 using ColossalFramework.Math;
+using PrecisionEngineering.Data;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace PrecisionEngineering.Rendering
 		public static Vector3 GetLabelWorldPosition(AngleMeasurement angle)
 		{
 
-			return angle.AnglePosition + angle.AngleNormal*AngleSize;
+			return angle.Position + angle.AngleNormal*AngleSize;
 
 		}
 
@@ -33,7 +34,7 @@ namespace PrecisionEngineering.Rendering
 				centreAngle = -centreAngle;
 
 
-			var arcs = BezierUtil.CreateArc(angle.AnglePosition, AngleSize,
+			var arcs = BezierUtil.CreateArc(angle.Position, AngleSize,
 				centreAngle - angle.AngleSize*.5f,
 				centreAngle + angle.AngleSize*.5f);
 
@@ -43,9 +44,9 @@ namespace PrecisionEngineering.Rendering
 				var isLast = i == arcs.Count - 1;
 
 				renderManager.OverlayEffect.DrawBezier(cameraInfo,
-					angle.Detail == MeasurementDetail.Common ? Color.green : Color.yellow, arcs[i], 3f, 0f, 0f,
-					angle.AnglePosition.y - 20f,
-					angle.AnglePosition.y + 20f, true, true);
+					angle.Detail == MeasurementDetail.Primary ? Color.green : Color.yellow, arcs[i], 3f, 0f, 0f,
+					angle.Position.y - 20f,
+					angle.Position.y + 20f, true, true);
 
 			}
 

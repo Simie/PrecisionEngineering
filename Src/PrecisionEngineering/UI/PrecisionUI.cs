@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ColossalFramework.UI;
+using PrecisionEngineering.Data;
 
 namespace PrecisionEngineering.UI
 {
@@ -8,8 +9,8 @@ namespace PrecisionEngineering.UI
 
 		private UIView _rootView;
 
-		private readonly List<AngleLabel> _activeAngleLabels = new List<AngleLabel>();
-		private readonly List<AngleLabel> _angleLabelPool = new List<AngleLabel>();
+		private readonly List<MeasurementLabel> _activeAngleLabels = new List<MeasurementLabel>();
+		private readonly List<MeasurementLabel> _angleLabelPool = new List<MeasurementLabel>();
 
 		public PrecisionUI()
 		{
@@ -42,14 +43,14 @@ namespace PrecisionEngineering.UI
 
 		}
 
-		public AngleLabel GetAngleLabel()
+		public MeasurementLabel GetMeasurementLabel()
 		{
 
-			AngleLabel l;
+			MeasurementLabel l;
 
 			if (_angleLabelPool.Count == 0) {
 
-				l = CreateAngleLabel();
+				l = CreateMeasurementLabel();
 
 			} else {
 
@@ -65,10 +66,10 @@ namespace PrecisionEngineering.UI
 
 		}
 
-		AngleLabel CreateAngleLabel()
+		MeasurementLabel CreateMeasurementLabel()
 		{
 
-			return _rootView.AddUIComponent(typeof (AngleLabel)) as AngleLabel;
+			return _rootView.AddUIComponent(typeof (MeasurementLabel)) as MeasurementLabel;
 
 		}
 		

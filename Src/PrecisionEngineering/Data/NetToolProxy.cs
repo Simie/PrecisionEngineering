@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using UnityEngine;
 
-namespace PrecisionEngineering
+namespace PrecisionEngineering.Data
 {
 
 	/// <summary>
@@ -17,7 +15,12 @@ namespace PrecisionEngineering
 		public bool IsSnappingEnabled { get { return _target.m_snap; } }
 
 		public NetTool.Mode Mode { get { return _target.m_mode; } }
-		public ToolBase.ToolErrors BuildErrors { get { return (ToolBase.ToolErrors) _buildErrorsFieldInfo.GetValue(_target); }}
+
+		public ToolBase.ToolErrors BuildErrors
+		{
+			get { return _target.GetErrors(); }
+		}
+
 		public int ControlPointsCount { get { return (int)_controlPointCountField.GetValue(_target); } }
 
 		public IList<NetTool.ControlPoint> ControlPoints

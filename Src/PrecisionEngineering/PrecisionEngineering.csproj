@@ -54,12 +54,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Debug.cs" />
-    <Compile Include="UI\AngleLabel.cs" />
+    <Compile Include="Data\Measurement.cs" />
+    <Compile Include="UI\MeasurementLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />
     <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
-    <Compile Include="NetToolProxy.cs" />
-    <Compile Include="PrecisionCalculator.cs" />
+    <Compile Include="Data\NetToolProxy.cs" />
+    <Compile Include="Data\PrecisionCalculator.cs" />
     <Compile Include="PrecisionEngineeringManager.cs" />
     <Compile Include="Rendering\AngleRenderer.cs" />
     <Compile Include="UI\DebugUI.cs" />
