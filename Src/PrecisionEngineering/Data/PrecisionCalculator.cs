@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using PrecisionEngineering.Data.Calculations;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
@@ -27,25 +28,19 @@ namespace PrecisionEngineering.Data
 			if (!netTool.IsEnabled)
 				return;
 
-			//if (netTool.BuildErrors & ToolBase.ToolErrors.VisibleErrors != 0)
-			//	return;
+			Segment.CalculateSegmentBranchAngles(netTool, _measurements);
+			Node.CalculateBranchAngles(netTool, _measurements);
 
-			if(netTool.ControlPointsCount > 0 && netTool.ControlPoints[0].m_segment > 0)
-				CalculateSegmentBranchAngles(netTool);
-
-			if (netTool.ControlPointsCount > 0 && netTool.ControlPoints[0].m_node > 0)
-				CalculateNodeBranchAngles(netTool);
-
-			if (netTool.NodePositions.m_size > 1)
-				CalculateDistance(netTool);
-
-			if (netTool.NodePositions.m_size > 1)
-				CalculateNearbyNodes(netTool);
+			CalculateDistance(netTool, _measurements);
+			CalculateNearbySegments(netTool, _measurements);
 
 		}
 
-		private void CalculateDistance(NetToolProxy netTool)
+		private static void CalculateDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
+
+			if (netTool.NodePositions.m_size <= 1)
+				return;
 
 			float length = 0;
 
@@ -66,93 +61,17 @@ namespace PrecisionEngineering.Data
 			var d = new DistanceMeasurement(length, avg*1/netTool.NodePositions.m_size, true, netTool.NodePositions[0].m_position,
 				netTool.NodePositions[netTool.NodePositions.m_size - 1].m_position, MeasurementFlags.Primary | MeasurementFlags.HideOverlay);
 
-			_measurements.Add(d);
+			measurements.Add(d);
 
 		}
 
-		/// <summary>
-		/// Calculate the angles between branch and the segment it branches from
-		/// </summary>
-		/// <param name="netTool"></param>
-		private void CalculateSegmentBranchAngles(NetToolProxy netTool)
+		private static readonly ushort[] _segments = new ushort[16];
+
+		private static void CalculateNearbySegments(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
-			if (netTool.ControlPoints.Count < 1)
+			if (netTool.NodePositions.m_size <= 1)
 				return;
-
-			if (netTool.ControlPoints[0].m_segment == 0)
-				return;
-
-			if (netTool.NodePositions.m_size < 2)
-				return;
-
-			var sourceSegmentDirection = netTool.ControlPoints[0].m_direction;
-
-			var sourceNode = netTool.NodePositions[0];
-			var destNode = netTool.NodePositions[1];
-
-			var lineDirection = sourceNode.m_position.Flatten().DirectionTo(destNode.m_position.Flatten());
-
-			var angleSize = Vector3.Angle(sourceSegmentDirection, lineDirection);
-			var angleDirection = Vector3.Normalize(sourceSegmentDirection + lineDirection);
-
-			var otherAngleSize = Vector3.Angle(-sourceSegmentDirection, lineDirection);
-			var otherAngleDirection = Vector3.Normalize(-sourceSegmentDirection + lineDirection);
-
-			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection,
-				angleSize > otherAngleSize ? MeasurementFlags.Secondary : MeasurementFlags.Primary));
-
-			_measurements.Add(new AngleMeasurement(otherAngleSize, sourceNode.m_position, otherAngleDirection,
-				angleSize > otherAngleSize ? MeasurementFlags.Primary : MeasurementFlags.Secondary));
-
-		}
-
-		/// <summary>
-		/// Calculate the angles to other segments branching from the same node
-		/// </summary>
-		/// <param name="netTool"></param>
-		private void CalculateNodeBranchAngles(NetToolProxy netTool)
-		{
-
-			if (netTool.ControlPoints.Count < 1)
-				return;
-
-			var sourceNodeId = netTool.ControlPoints[0].m_node;
-
-			if (sourceNodeId == 0)
-				return;
-
-			if (netTool.NodePositions.m_size < 2)
-				return;
-
-			var sourceNode = NetManager.instance.m_nodes.m_buffer[sourceNodeId];
-			var firstNewNode = netTool.NodePositions[0];
-
-			var existingSegments = NetNodeUtility.GetNodeSegments(sourceNode);
-
-			if (existingSegments.Count == 0)
-				return;
-
-			// For now, find the segment that closest matches the branch
-			var nearestSegment = existingSegments.OrderByDescending(
-				s =>
-					Vector3.Dot(firstNewNode.m_direction,
-						(s.m_startNode == sourceNodeId ? s.m_startDirection : s.m_endDirection)))
-			                                     .FirstOrDefault();
-
-			var nearestSegmentDirection = nearestSegment.m_startNode == sourceNodeId ? nearestSegment.m_startDirection : nearestSegment.m_endDirection;
-
-			var angleSize = Vector3.Angle(firstNewNode.m_direction, nearestSegmentDirection);
-			var angleDirection = Vector3.Normalize(firstNewNode.m_direction + nearestSegmentDirection);
-
-			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementFlags.Primary));
-
-		}
-
-		private readonly ushort[] _segments = new ushort[16];
-
-		private void CalculateNearbyNodes(NetToolProxy netTool)
-		{
 
 			var lastNode = netTool.NodePositions[netTool.NodePositions.m_size - 1];
 
@@ -191,16 +110,18 @@ namespace PrecisionEngineering.Data
 				var dist = Vector3.Distance(p1, p2);
 
 				if (dist < minDist) {
+
 					minDist = dist;
 					p = p2;
 					found = true;
+
 				}
 
 			}
 
 			if (found) {
 
-				_measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true, p1, p,
+				measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true, p1, p,
 					MeasurementFlags.Secondary));
 
 			}

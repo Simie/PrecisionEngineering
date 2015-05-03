@@ -54,6 +54,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\AngleMeasurement.cs" />
+    <Compile Include="Data\Calculations\Node.cs" />
+    <Compile Include="Data\Calculations\Segment.cs" />
     <Compile Include="Data\DistanceMeasurement.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Data\Measurement.cs" />
