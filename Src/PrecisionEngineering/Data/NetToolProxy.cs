@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace PrecisionEngineering.Data
@@ -25,21 +26,22 @@ namespace PrecisionEngineering.Data
 
 		public IList<NetTool.ControlPoint> ControlPoints
 		{
-			get { return _controlPoints; }
+			get { return (IList<NetTool.ControlPoint>) _controlPointsField.GetValue(_target); }
 		}
-
 		public FastList<NetTool.NodePosition> NodePositions
 		{
 			get { return NetTool.m_nodePositionsMain; }
 		}
 
+		public NetInfo NetInfo { get
+		{
+			return _target.m_prefab;} }
 
 		private NetTool _target;
 
-		private NetTool.ControlPoint[] _controlPoints;
 
 		private readonly FieldInfo _controlPointCountField;
-		private readonly FieldInfo _buildErrorsFieldInfo;
+		private readonly FieldInfo _controlPointsField;
 
 		public NetToolProxy(NetTool target)
 		{
@@ -47,12 +49,7 @@ namespace PrecisionEngineering.Data
 			_target = target;
 
 			_controlPointCountField = GetPrivateField("m_controlPointCount");
-			_buildErrorsFieldInfo = GetPrivateField("m_buildErrors");
-
-			Debug.Log("Loading Control Points");
-			_controlPoints =
-				(NetTool.ControlPoint[])
-					(typeof (NetTool).GetField("m_controlPoints", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(target));
+			_controlPointsField = GetPrivateField("m_controlPoints");
 
 
 		}

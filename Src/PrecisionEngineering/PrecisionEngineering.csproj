@@ -60,6 +60,7 @@
     <Compile Include="Debug.cs" />
     <Compile Include="Data\Measurement.cs" />
     <Compile Include="Rendering\DistanceRenderer.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="UI\MeasurementLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\NetNodeUtility.cs" />

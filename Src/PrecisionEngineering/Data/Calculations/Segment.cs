@@ -39,8 +39,16 @@ namespace PrecisionEngineering.Data.Calculations
 			var otherAngleSize = Vector3.Angle(-sourceSegmentDirection, lineDirection);
 			var otherAngleDirection = Vector3.Normalize(-sourceSegmentDirection + lineDirection);
 
+			// 180d angles are not wanted
+			if (Mathf.Abs(angleSize - 180f) < 0.5f || Mathf.Abs(otherAngleSize - 180f) < 0.5f)
+				return;
+
 			measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection,
 				angleSize > otherAngleSize ? MeasurementFlags.Secondary : MeasurementFlags.Primary));
+
+			// Only one angle when right angle please
+			if (Mathf.Abs(angleSize - 90f) < 0.5f)
+				return;
 
 			measurements.Add(new AngleMeasurement(otherAngleSize, sourceNode.m_position, otherAngleDirection,
 				angleSize > otherAngleSize ? MeasurementFlags.Primary : MeasurementFlags.Secondary));

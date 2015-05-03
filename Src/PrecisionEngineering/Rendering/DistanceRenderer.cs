@@ -35,7 +35,7 @@ namespace PrecisionEngineering.Rendering
 
 			renderManager.OverlayEffect.DrawSegment(cameraInfo,
 				distance.Flags == MeasurementFlags.Primary ? Color.green : Color.yellow,
-				new Segment3(distance.StartPosition, distance.EndPosition), Size, 1f,
+				new Segment3(distance.StartPosition, distance.EndPosition), Size, 3f,
 				minHeight - 20f,
 				maxHeight + 20f, true, true);
 

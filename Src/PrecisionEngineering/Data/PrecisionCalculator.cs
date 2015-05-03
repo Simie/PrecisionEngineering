@@ -70,8 +70,12 @@ namespace PrecisionEngineering.Data
 		private static void CalculateNearbySegments(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
+			if (netTool.ControlPointsCount == 0)
+				return;
+
 			if (netTool.NodePositions.m_size <= 1)
 				return;
+
 
 			var lastNode = netTool.NodePositions[netTool.NodePositions.m_size - 1];
 
@@ -90,7 +94,6 @@ namespace PrecisionEngineering.Data
 					NetNodeUtility.GetNodeSegmentIds(NetManager.instance.m_nodes.m_buffer[netTool.ControlPoints[0].m_node]);
 
 			}
-
 			var p1 = lastNode.m_position;
 
 			var minDist = float.MaxValue;
@@ -104,6 +107,9 @@ namespace PrecisionEngineering.Data
 					continue;
 
 				var s = NetManager.instance.m_segments.m_buffer[_segments[i]];
+
+				if (s.Info.m_class.m_service != netTool.NetInfo.m_class.m_service)
+					continue;
 
 				var p2 = s.GetClosestPosition(p1);
 
@@ -119,7 +125,7 @@ namespace PrecisionEngineering.Data
 
 			}
 
-			if (found) {
+			if (found && minDist > Settings.MinimumDistanceMeasure) {
 
 				measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true, p1, p,
 					MeasurementFlags.Secondary));
