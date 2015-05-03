@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ColossalFramework.UI;
 using PrecisionEngineering.Data;
 using PrecisionEngineering.UI;
 using UnityEngine;
@@ -55,9 +56,14 @@ namespace PrecisionEngineering
 
 			_ui.ReleaseAll();
 
+			var secondaryDetailEnabled = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
 			for (var i = 0; i < _calculator.Measurements.Count; i++) {
 
 				var m = _calculator.Measurements[i];
+
+				if (m.Flags == MeasurementFlags.Secondary && !secondaryDetailEnabled)
+					continue;
 
 				if (m is AngleMeasurement) {
 
@@ -66,7 +72,7 @@ namespace PrecisionEngineering
 					Rendering.AngleRenderer.Render(cameraInfo, am);
 
 					var label = _ui.GetMeasurementLabel();
-					label.SetValue(am.AngleSize, "°");
+					label.SetValue(string.Format("{0:#.0}{1}", am.AngleSize.RoundToNearest(0.1f), "°"));
 					label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
 
 					continue;
@@ -78,9 +84,11 @@ namespace PrecisionEngineering
 
 					var dm = m as DistanceMeasurement;
 
+					Rendering.DistanceRenderer.Render(cameraInfo, dm);
+
 					var label = _ui.GetMeasurementLabel();
-					label.SetValue(dm.Length, "m");
-					label.SetWorldPosition(cameraInfo, dm.Position);
+					label.SetValue(string.Format("{0:#}{1}", dm.Length.RoundToNearest(1), "m"));
+					label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 
 					continue;
 

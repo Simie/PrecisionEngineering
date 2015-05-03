@@ -53,8 +53,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\AngleMeasurement.cs" />
+    <Compile Include="Data\DistanceMeasurement.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Data\Measurement.cs" />
+    <Compile Include="Rendering\DistanceRenderer.cs" />
     <Compile Include="UI\MeasurementLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />

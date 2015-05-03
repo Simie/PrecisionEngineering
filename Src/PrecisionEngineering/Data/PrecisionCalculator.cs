@@ -57,11 +57,12 @@ namespace PrecisionEngineering.Data
 				prevNodePosition = n.m_position;
 				avg += n.m_position;
 
-				//netTool.ControlPoints[0]
-
 			}
 
-			_measurements.Add(new DistanceMeasurement(length, avg*1/netTool.NodePositions.m_size, MeasurementDetail.Primary));
+			var d = new DistanceMeasurement(length, avg*1/netTool.NodePositions.m_size, true, netTool.NodePositions[0].m_position,
+				netTool.NodePositions[netTool.NodePositions.m_size - 1].m_position, MeasurementFlags.Primary | MeasurementFlags.HideOverlay);
+
+			_measurements.Add(d);
 
 		}
 
@@ -95,10 +96,10 @@ namespace PrecisionEngineering.Data
 			var otherAngleDirection = Vector3.Normalize(-sourceSegmentDirection + lineDirection);
 
 			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection,
-				angleSize > otherAngleSize ? MeasurementDetail.Secondary : MeasurementDetail.Primary));
+				angleSize > otherAngleSize ? MeasurementFlags.Secondary : MeasurementFlags.Primary));
 
 			_measurements.Add(new AngleMeasurement(otherAngleSize, sourceNode.m_position, otherAngleDirection,
-				angleSize > otherAngleSize ? MeasurementDetail.Primary : MeasurementDetail.Secondary));
+				angleSize > otherAngleSize ? MeasurementFlags.Primary : MeasurementFlags.Secondary));
 
 		}
 
@@ -140,7 +141,7 @@ namespace PrecisionEngineering.Data
 			var angleSize = Vector3.Angle(firstNewNode.m_direction, nearestSegmentDirection);
 			var angleDirection = Vector3.Normalize(firstNewNode.m_direction + nearestSegmentDirection);
 
-			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementDetail.Primary));
+			_measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementFlags.Primary));
 
 		}
 

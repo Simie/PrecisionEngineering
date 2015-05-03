@@ -10,12 +10,9 @@ namespace PrecisionEngineering.UI
 	class MeasurementLabel : UILabel
 	{
 
-		public void SetValue(float value, string suffix)
+		public void SetValue(string v)
 		{
-
-			var a = value.RoundToNearest(0.1f);
-			text = string.Format("<color=#87d3ff>{0:#.0}</color>{1}", a, suffix);
-
+			text = string.Format("<color=#87d3ff>{0}</color>", v);
 		}
 
 		public void SetWorldPosition(RenderManager.CameraInfo camera, Vector3 worldPos)

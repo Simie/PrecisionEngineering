@@ -25,8 +25,10 @@ namespace PrecisionEngineering.Rendering
 		public static void Render(RenderManager.CameraInfo cameraInfo, AngleMeasurement angle)
 		{
 
-			var renderManager = RenderManager.instance;
+			if (angle.HideOverlay)
+				return;
 
+			var renderManager = RenderManager.instance;
 
 			var centreAngle = Vector3.Angle(Vector3.right, angle.AngleNormal);
 
@@ -44,7 +46,7 @@ namespace PrecisionEngineering.Rendering
 				var isLast = i == arcs.Count - 1;
 
 				renderManager.OverlayEffect.DrawBezier(cameraInfo,
-					angle.Detail == MeasurementDetail.Primary ? Color.green : Color.yellow, arcs[i], 3f, 0f, 0f,
+					angle.Flags == MeasurementFlags.Primary ? Color.green : Color.yellow, arcs[i], 3f, 0f, 0f,
 					angle.Position.y - 20f,
 					angle.Position.y + 20f, true, true);
 
