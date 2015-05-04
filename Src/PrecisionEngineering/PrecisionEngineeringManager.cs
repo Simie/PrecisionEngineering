@@ -46,6 +46,7 @@ namespace PrecisionEngineering
 
 			base.SimulationStepImpl(subStep);
 
+			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			_calculator.Update(_netToolProxy);
 
 		}
