@@ -30,6 +30,8 @@ namespace PrecisionEngineering
 			_netTool = FindObjectOfType<NetTool>();
 			_netToolProxy = new NetToolProxy(_netTool);
 
+			Settings.BlueprintColor = _netToolProxy.ToolController.m_validColor;
+
 			_calculator = new PrecisionCalculator();
 
 			Debug.Log(string.Format("Net Tool: {0}", _netTool));

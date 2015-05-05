@@ -12,7 +12,8 @@ namespace PrecisionEngineering.Data
 		None = 0,
 		Primary = 0x1,
 		Secondary = 0x2,
-		HideOverlay = 0x4
+		HideOverlay = 0x4,
+		Blueprint = 0x8
 
 	}
 

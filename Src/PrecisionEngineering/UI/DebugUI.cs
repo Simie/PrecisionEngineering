@@ -47,7 +47,7 @@ namespace PrecisionEngineering.UI
 
 			txt.AppendLine("Control Points: ");
 
-			for (var i = 0; i < NetTool.ControlPointsCount; i++) {
+			for (var i = 0; i < NetTool.ControlPointsCount+1; i++) {
 
 				var pt = NetTool.ControlPoints[i];
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PrecisionEngineering.Utilities;
 using UnityEngine;
 
 namespace PrecisionEngineering.Data.Calculations
@@ -17,41 +18,69 @@ namespace PrecisionEngineering.Data.Calculations
 		public static void CalculateSegmentBranchAngles(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
-			if (netTool.ControlPoints.Count < 1)
+			if (netTool.ControlPointsCount < 1)
 				return;
 
 			if (netTool.ControlPoints[0].m_segment == 0)
 				return;
 
-			if (netTool.NodePositions.m_size < 2)
+			var sourceControlPoint = netTool.ControlPoints[0];
+			var destControlPoint = netTool.ControlPoints[1];
+
+			var lineDirection = sourceControlPoint.m_position.Flatten().DirectionTo(destControlPoint.m_position.Flatten());
+
+			CalculateAngles(sourceControlPoint.m_position, sourceControlPoint.m_direction, lineDirection, measurements);
+
+		}
+
+		public static void CalculateJoinBranchAngles(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount < 1)
 				return;
 
-			var sourceSegmentDirection = netTool.ControlPoints[0].m_direction;
+			if (netTool.ControlPoints[netTool.ControlPointsCount].m_segment == 0)
+				return;
 
-			var sourceNode = netTool.NodePositions[0];
-			var destNode = netTool.NodePositions[1];
+			var sourceControlPoint = netTool.ControlPoints[netTool.ControlPointsCount - 1];
+			var lastControlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
 
-			var lineDirection = sourceNode.m_position.Flatten().DirectionTo(destNode.m_position.Flatten());
+			var lineDirection = lastControlPoint.m_position.Flatten().DirectionTo(sourceControlPoint.m_position.Flatten());
 
-			var angleSize = Vector3.Angle(sourceSegmentDirection, lineDirection);
-			var angleDirection = Vector3.Normalize(sourceSegmentDirection + lineDirection);
+			Vector3 segmentDirection;
+			Vector3 segmentPosition;
 
-			var otherAngleSize = Vector3.Angle(-sourceSegmentDirection, lineDirection);
-			var otherAngleDirection = Vector3.Normalize(-sourceSegmentDirection + lineDirection);
+			NetManager.instance.m_segments.m_buffer[lastControlPoint.m_segment].GetClosestPositionAndDirection(
+				lastControlPoint.m_position, out segmentPosition, out segmentDirection);
 
-			// 180d angles are not wanted
+			CalculateAngles(segmentPosition, segmentDirection, lineDirection, measurements);
+
+		}
+
+		public static void CalculateAngles(Vector3 anglePosition, Vector3 segmentDirection, Vector3 branchDirection, ICollection<Measurement> measurements)
+		{
+
+			var angleSize = Vector3.Angle(segmentDirection, branchDirection);
+			var angleDirection = Vector3.Normalize(segmentDirection + branchDirection);
+
+			var otherAngleSize = 180f - angleSize;
+			var otherAngleDirection = Vector3.Normalize(-segmentDirection + branchDirection);
+
+			if (otherAngleSize < angleSize) {
+
+				Util.Swap(ref angleSize, ref otherAngleSize);
+				Util.Swap(ref angleDirection, ref otherAngleDirection);
+
+			}
+
+			measurements.Add(new AngleMeasurement(angleSize, anglePosition, angleDirection,
+				MeasurementFlags.Primary));
+
 			if (Mathf.Abs(angleSize - 180f) < 0.5f || Mathf.Abs(otherAngleSize - 180f) < 0.5f)
 				return;
 
-			measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection,
-				angleSize > otherAngleSize ? MeasurementFlags.Secondary : MeasurementFlags.Primary));
-
-			// Only one angle when right angle please
-			if (Mathf.Abs(angleSize - 90f) < 0.5f)
-				return;
-
-			measurements.Add(new AngleMeasurement(otherAngleSize, sourceNode.m_position, otherAngleDirection,
-				angleSize > otherAngleSize ? MeasurementFlags.Primary : MeasurementFlags.Secondary));
+			measurements.Add(new AngleMeasurement(otherAngleSize, anglePosition, otherAngleDirection,
+				MeasurementFlags.Secondary));
 
 		}
 

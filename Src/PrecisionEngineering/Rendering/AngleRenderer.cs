@@ -13,12 +13,35 @@ namespace PrecisionEngineering.Rendering
 	static class AngleRenderer
 	{
 
-		public const float AngleSize = 35f;
+		public static float GetAngleDistance(MeasurementFlags flags)
+		{
+
+			if ((flags & MeasurementFlags.Blueprint) != 0)
+				return 15f;
+
+			return 25f;
+
+		}
+
+		public static Color GetAngleColor(MeasurementFlags flags)
+		{
+
+			if ((flags & MeasurementFlags.Blueprint) != 0) {
+				return Settings.BlueprintColor;
+			}			
+			
+			if ((flags & MeasurementFlags.Secondary) != 0) {
+				return Settings.SecondaryColor;
+			}
+
+			return Settings.PrimaryColor;
+
+		}
 
 		public static Vector3 GetLabelWorldPosition(AngleMeasurement angle)
 		{
 
-			return angle.Position + angle.AngleNormal*AngleSize;
+			return angle.Position + angle.AngleNormal*GetAngleDistance(angle.Flags);
 
 		}
 
@@ -36,7 +59,7 @@ namespace PrecisionEngineering.Rendering
 				centreAngle = -centreAngle;
 
 
-			var arcs = BezierUtil.CreateArc(angle.Position, AngleSize,
+			var arcs = BezierUtil.CreateArc(angle.Position, GetAngleDistance(angle.Flags),
 				centreAngle - angle.AngleSize*.5f,
 				centreAngle + angle.AngleSize*.5f);
 
@@ -45,8 +68,7 @@ namespace PrecisionEngineering.Rendering
 				var isFirst = i == 0;
 				var isLast = i == arcs.Count - 1;
 
-				renderManager.OverlayEffect.DrawBezier(cameraInfo,
-					angle.Flags == MeasurementFlags.Primary ? Color.green : Color.yellow, arcs[i], 3f, 0f, 0f,
+				renderManager.OverlayEffect.DrawBezier(cameraInfo, GetAngleColor(angle.Flags), arcs[i], 3f, 0f, 0f,
 					angle.Position.y - 20f,
 					angle.Position.y + 20f, true, true);
 

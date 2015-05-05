@@ -29,14 +29,64 @@ namespace PrecisionEngineering.Data
 				return;
 
 			Segment.CalculateSegmentBranchAngles(netTool, _measurements);
+			Segment.CalculateJoinBranchAngles(netTool, _measurements);
 			Node.CalculateBranchAngles(netTool, _measurements);
 
-			CalculateDistance(netTool, _measurements);
+			//CalculateNodePositionDistance(netTool, _measurements);
 			CalculateNearbySegments(netTool, _measurements);
+
+			CalculateControlPointDistances(netTool, _measurements);
+			CalculateControlPointAngle(netTool, _measurements);
 
 		}
 
-		private static void CalculateDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
+		private static void CalculateControlPointDistances(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount < 1)
+				return;
+
+			for (var i = 1; i < netTool.ControlPointsCount+1; i++) {
+
+				var p1 = netTool.ControlPoints[i - 1].m_position;
+				var p2 = netTool.ControlPoints[i].m_position;
+
+				var dist = Vector3.Distance(p1, p2);
+				var pos = Vector3Extensions.Average(p1, p2);
+
+				measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, MeasurementFlags.HideOverlay));
+
+			}
+
+		}
+
+		private static void CalculateControlPointAngle(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount < 2)
+				return;
+
+			var p1 = netTool.ControlPoints[0];
+			var p2 = netTool.ControlPoints[1];
+			var p3 = netTool.ControlPoints[2];
+
+			var d1 = Vector3.Normalize(p1.m_position.Flatten() - p2.m_position.Flatten());
+			var d2 = Vector3.Normalize(p3.m_position.Flatten() - p2.m_position.Flatten());
+
+			var angle = Vector3.Angle(d1, d2);
+			var angleDirection = Vector3.Normalize(d1 + d2);
+
+			measurements.Add(new AngleMeasurement(angle, p2.m_position, angleDirection,
+				MeasurementFlags.Primary | MeasurementFlags.Blueprint));
+
+		}
+
+		/// <summary>
+		/// Calculate the distance between all the proposed nodes
+		/// </summary>
+		/// <param name="netTool"></param>
+		/// <param name="measurements"></param>
+		private static void CalculateNodePositionDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
 			if (netTool.NodePositions.m_size <= 1)

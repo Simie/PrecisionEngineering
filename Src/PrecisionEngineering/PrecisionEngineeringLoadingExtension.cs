@@ -29,5 +29,16 @@ namespace PrecisionEngineering
 
 		}
 
+		public override void OnLevelUnloading()
+		{
+
+			Debug.Log("Returning control of NetTool.SnapDirection()...");
+
+			SnapController.ReturnControl();
+
+			base.OnLevelUnloading();
+
+		}
+
 	}
 }

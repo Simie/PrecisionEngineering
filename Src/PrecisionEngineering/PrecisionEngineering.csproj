@@ -64,11 +64,11 @@
     <Compile Include="Rendering\DistanceRenderer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SnapController.cs" />
-    <Compile Include="ThreadingExtension.cs" />
     <Compile Include="UI\MeasurementLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\NetNodeUtility.cs" />
     <Compile Include="Utilities\RedirectionHelper.cs" />
+    <Compile Include="Utilities\Util.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />
     <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
     <Compile Include="Data\NetToolProxy.cs" />

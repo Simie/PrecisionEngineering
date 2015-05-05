@@ -11,6 +11,7 @@ namespace PrecisionEngineering.Data
 	public class NetToolProxy
 	{
 
+
 		public bool IsEnabled { get { return _target.enabled; } }
 
 		public bool IsSnappingEnabled { get { return _target.m_snap; } }
@@ -33,15 +34,21 @@ namespace PrecisionEngineering.Data
 			get { return NetTool.m_nodePositionsMain; }
 		}
 
-		public NetInfo NetInfo { get
+		public NetInfo NetInfo
 		{
-			return _target.m_prefab;} }
+			get { return _target.m_prefab; }
+		}
+
+		public ToolController ToolController
+		{
+			get { return (ToolController)_toolControllerField.GetValue(_target); }
+		}
 
 		private NetTool _target;
 
-
 		private readonly FieldInfo _controlPointCountField;
 		private readonly FieldInfo _controlPointsField;
+		private readonly FieldInfo _toolControllerField;
 
 		public NetToolProxy(NetTool target)
 		{
@@ -50,6 +57,7 @@ namespace PrecisionEngineering.Data
 
 			_controlPointCountField = GetPrivateField("m_controlPointCount");
 			_controlPointsField = GetPrivateField("m_controlPoints");
+			_toolControllerField = GetPrivateField("m_toolController");
 
 
 		}
