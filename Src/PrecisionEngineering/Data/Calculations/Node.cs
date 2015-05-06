@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
@@ -29,28 +30,108 @@ namespace PrecisionEngineering.Data.Calculations
 			if (netTool.NodePositions.m_size < 2)
 				return;
 
-			var sourceNode = NetManager.instance.m_nodes.m_buffer[sourceNodeId];
 			var firstNewNode = netTool.NodePositions[0];
 
-			var existingSegments = NetNodeUtility.GetNodeSegments(sourceNode);
+			CalculateAngles(sourceNodeId, firstNewNode.m_direction, measurements);
+
+		}
+
+		public static void CalculateAngles(ushort nodeId, Vector3 direction, ICollection<Measurement> measurements)
+		{
+
+			direction = direction.Flatten();
+
+			var node = NetManager.instance.m_nodes.m_buffer[nodeId];
+			var existingSegments = NetNodeUtility.GetNodeSegmentIds(node);
 
 			if (existingSegments.Count == 0)
 				return;
 
-			// For now, find the segment that closest matches the branch
-			var nearestSegment = existingSegments.OrderByDescending(
-				s =>
-					Vector3.Dot(firstNewNode.m_direction,
-						(s.m_startNode == sourceNodeId ? s.m_startDirection : s.m_endDirection)))
-			                                     .FirstOrDefault();
+			var nearestLeftAngle = 360f;
+			ushort nearestLeftSegmentId = 0;
+			var nearestLeftNormal = Vector3.zero;
 
-			var nearestSegmentDirection = nearestSegment.m_startNode == sourceNodeId ? nearestSegment.m_startDirection : nearestSegment.m_endDirection;
+			var nearestRightAngle = 360f;
+			ushort nearestRightSegmentId = 0;
+			var nearestRightNormal = Vector3.zero;
 
-			var angleSize = Vector3.Angle(firstNewNode.m_direction, nearestSegmentDirection);
-			var angleDirection = Vector3.Normalize(firstNewNode.m_direction + nearestSegmentDirection);
+			for (var i = 0; i < existingSegments.Count; i++) {
 
-			measurements.Add(new AngleMeasurement(angleSize, sourceNode.m_position, angleDirection, MeasurementFlags.Primary));
+				var s = NetManager.instance.m_segments.m_buffer[existingSegments[i]];
 
+				var d = s.m_startNode == nodeId ? s.m_startDirection : s.m_endDirection;
+				d = d.Flatten();
+
+				var angle = GetClockwiseAngleBetween(-d, direction, Vector3.up);
+
+				var leftAngle = 360f - angle;
+				var rightAngle = angle;
+
+				var n = Vector3.Normalize(direction + d);
+
+				if ((leftAngle < nearestLeftAngle)) {
+
+					nearestLeftAngle = leftAngle;
+					nearestLeftSegmentId = existingSegments[i];
+					nearestLeftNormal = Quaternion.AngleAxis(leftAngle*0.5f, Vector3.up)*direction;
+
+				}
+
+				if (rightAngle < nearestRightAngle) {
+
+					nearestRightAngle = rightAngle;
+					nearestRightSegmentId = existingSegments[i];
+					nearestRightNormal = Quaternion.AngleAxis(rightAngle * -0.5f, Vector3.up) * direction;
+
+				}
+
+			}
+
+			// When both angles are 180, only show the one on the right.
+			if (Mathf.Approximately(180f, nearestLeftAngle) && Mathf.Approximately(180f, nearestRightAngle)) {
+
+				measurements.Add(new AngleMeasurement(nearestRightAngle, node.m_position, nearestRightNormal,
+					MeasurementFlags.Primary));
+
+				return;
+
+			}
+
+			var leftFlags = nearestRightSegmentId > 0
+				? (nearestLeftAngle < nearestRightAngle ? MeasurementFlags.Primary : MeasurementFlags.Secondary)
+				: MeasurementFlags.Secondary; 
+	
+			var rightFlags = nearestLeftSegmentId > 0
+				? (nearestRightAngle < nearestLeftAngle ? MeasurementFlags.Primary : MeasurementFlags.Secondary)
+				: MeasurementFlags.Secondary; 
+
+			if (nearestLeftSegmentId > 0) {
+
+				measurements.Add(new AngleMeasurement(nearestLeftAngle, node.m_position, nearestLeftNormal, leftFlags));
+
+			}
+
+			if (nearestRightSegmentId > 0) {
+
+				measurements.Add(new AngleMeasurement(nearestRightAngle, node.m_position, nearestRightNormal, rightFlags));
+
+			}
+			
+		}
+
+		static float GetClockwiseAngleBetween(Vector3 a, Vector3 b, Vector3 n)
+		{
+			// angle in [0,180]
+			float angle = Vector3.Angle(a, b);
+			float sign = Mathf.Sign(Vector3.Dot(n, Vector3.Cross(a, b)));
+
+			// angle in [-179,180]
+			float signed_angle = angle * sign;
+
+			// angle in [0,360] (not used but included here for completeness)
+			float angle360 =  (signed_angle + 180) % 360;
+
+			return angle360;
 		}
 
 	}
