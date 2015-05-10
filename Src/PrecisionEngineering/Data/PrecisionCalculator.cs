@@ -29,8 +29,9 @@ namespace PrecisionEngineering.Data
 				return;
 
 			Segment.CalculateSegmentBranchAngles(netTool, _measurements);
-			Segment.CalculateJoinBranchAngles(netTool, _measurements);
+			Segment.CalculateJoinAngles(netTool, _measurements);
 			Node.CalculateBranchAngles(netTool, _measurements);
+			Node.CalculateJoinAngles(netTool, _measurements);
 
 			//CalculateNodePositionDistance(netTool, _measurements);
 			CalculateNearbySegments(netTool, _measurements);

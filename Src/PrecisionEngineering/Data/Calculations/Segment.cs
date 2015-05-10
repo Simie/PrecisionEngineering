@@ -33,7 +33,7 @@ namespace PrecisionEngineering.Data.Calculations
 
 		}
 
-		public static void CalculateJoinBranchAngles(NetToolProxy netTool, ICollection<Measurement> measurements)
+		public static void CalculateJoinAngles(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
 			if (netTool.ControlPointsCount < 1)

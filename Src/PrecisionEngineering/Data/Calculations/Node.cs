@@ -36,6 +36,33 @@ namespace PrecisionEngineering.Data.Calculations
 
 		}
 
+		/// <summary>
+		/// Calculate the angles to other segments branching from the same node
+		/// </summary>
+		/// <param name="netTool"></param>
+		/// <param name="measurements">Collection to populate with measurements</param>
+		public static void CalculateJoinAngles(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPoints.Count < 1)
+				return;
+
+			var controlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
+
+			var destNodeId = controlPoint.m_node;
+
+			if (destNodeId == 0)
+				return;
+
+			if (netTool.NodePositions.m_size < 2)
+				return;
+
+			//var lastNode = netTool.NodePositions[netTool.NodePositions.m_size-1];
+
+			CalculateAngles(destNodeId, -controlPoint.m_direction, measurements);
+
+		}
+
 		public static void CalculateAngles(ushort nodeId, Vector3 direction, ICollection<Measurement> measurements)
 		{
 
