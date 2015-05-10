@@ -50,7 +50,13 @@ namespace PrecisionEngineering
 
 			if (!EnableSnapping) {
 
-				return SnapDirectionOriginal(newPoint, oldPoint, info, out success, out minDistanceSq);
+				ReturnControl();
+
+				var result = NetTool.SnapDirection(newPoint, oldPoint, info, out success, out minDistanceSq);
+
+				StealControl();
+
+				return result;
 
 			}
 
@@ -58,6 +64,46 @@ namespace PrecisionEngineering
 			minDistanceSq = minDistanceSq * minDistanceSq;
 			var controlPoint = newPoint;
 			success = false;
+
+			// If dragging from a node
+
+			if (oldPoint.m_node != 0 && !newPoint.m_outside) {
+
+				// Node the road build operation is starting from
+				var sourceNodeId = oldPoint.m_node;
+				var sourceNode = NetManager.instance.m_nodes.m_buffer[oldPoint.m_node];
+
+				// Direction and length of the line from the node to the users control point
+				var userLineDirection = (newPoint.m_position - sourceNode.m_position).Flatten();
+				var userLineLength = userLineDirection.magnitude;
+				userLineDirection.Normalize();
+
+				var closestSegmentId = NetNodeUtility.GetClosestSegmentId(sourceNodeId, userLineDirection);
+
+				if (closestSegmentId > 0) {
+					
+					// Snap to angle increments originating from this closest segment
+
+					var closestSegmentDirection = NetNodeUtility.GetSegmentExitDirection(sourceNodeId, closestSegmentId);
+
+					var currentAngle = Vector3Extensions.Angle(closestSegmentDirection, userLineDirection, Vector3.up);
+
+					var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
+					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*closestSegmentDirection;
+
+					controlPoint.m_direction = snappedDirection.normalized;
+					controlPoint.m_position = sourceNode.m_position + userLineLength*controlPoint.m_direction;
+					controlPoint.m_position.y = newPoint.m_position.y;
+
+					minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
+					success = true;
+
+					//minDistanceSq = olpo;
+
+
+				}
+
+			}
 
 			return controlPoint;
 
@@ -71,68 +117,110 @@ namespace PrecisionEngineering
 			minDistanceSq = minDistanceSq * minDistanceSq;
 			var controlPoint = newPoint;
 			success = false;
+
+			// When dragging from an existing node
 			if (oldPoint.m_node != 0) {
-				var netNode = Singleton<NetManager>.instance.m_nodes.m_buffer[oldPoint.m_node];
+
+				var sourceNode = Singleton<NetManager>.instance.m_nodes.m_buffer[oldPoint.m_node];
+
 				for (var index = 0; index < 8; ++index) {
-					var segment = netNode.GetSegment(index);
+
+					var segment = sourceNode.GetSegment(index);
+
 					if (segment != 0) {
+
 						var netSegment = Singleton<NetManager>.instance.m_segments.m_buffer[segment];
-						var v = (int)netSegment.m_startNode != (int)oldPoint.m_node
+
+						var v = (int) netSegment.m_startNode != (int) oldPoint.m_node
 							? netSegment.m_endDirection
 							: netSegment.m_startDirection;
 						v.y = 0.0f;
+
 						if (newPoint.m_node == 0 && !newPoint.m_outside) {
+
 							Vector3 vector3 = Line2.Offset(VectorUtils.XZ(v), VectorUtils.XZ(oldPoint.m_position - newPoint.m_position));
 							var sqrMagnitude1 = vector3.sqrMagnitude;
-							if (sqrMagnitude1 < (double)minDistanceSq) {
+
+							if (sqrMagnitude1 < (double) minDistanceSq) {
+
 								vector3 = newPoint.m_position + vector3 - oldPoint.m_position;
-								var num = (float)(vector3.x * (double)v.x + vector3.z * (double)v.z);
-								controlPoint.m_position = oldPoint.m_position + v * num;
+								var num = (float) (vector3.x*(double) v.x + vector3.z*(double) v.z);
+								controlPoint.m_position = oldPoint.m_position + v*num;
 								controlPoint.m_position.y = newPoint.m_position.y;
-								controlPoint.m_direction = (double)num >= 0.0 ? v : -v;
+								controlPoint.m_direction = (double) num >= 0.0 ? v : -v;
 								minDistanceSq = sqrMagnitude1;
 								success = true;
+
 							}
+
 							if (info.m_maxBuildAngle > 89.0) {
+
 								v = new Vector3(v.z, 0.0f, -v.x);
+
 								vector3 = Line2.Offset(VectorUtils.XZ(v), VectorUtils.XZ(oldPoint.m_position - newPoint.m_position));
+
 								var sqrMagnitude2 = vector3.sqrMagnitude;
-								if (sqrMagnitude2 < (double)minDistanceSq) {
+
+								if (sqrMagnitude2 < (double) minDistanceSq) {
+
 									vector3 = newPoint.m_position + vector3 - oldPoint.m_position;
-									var num = (float)(vector3.x * (double)v.x + vector3.z * (double)v.z);
-									controlPoint.m_position = oldPoint.m_position + v * num;
+									var num = (float) (vector3.x*(double) v.x + vector3.z*(double) v.z);
+									controlPoint.m_position = oldPoint.m_position + v*num;
 									controlPoint.m_position.y = newPoint.m_position.y;
-									controlPoint.m_direction = (double)num >= 0.0 ? v : -v;
+									controlPoint.m_direction = (double) num >= 0.0 ? v : -v;
 									minDistanceSq = sqrMagnitude2;
 									success = true;
+
 								}
+
 							}
+
 						} else {
-							var num1 = (float)(newPoint.m_direction.x * (double)v.x + newPoint.m_direction.z * (double)v.z);
-							if (num1 > double.Epsilon) {
+
+							var d = (float) (newPoint.m_direction.x*(double) v.x + newPoint.m_direction.z*(double) v.z);
+
+							if (d > double.Epsilon) {
+
 								controlPoint.m_direction = v;
 								success = true;
+
 							}
-							if (num1 < -double.Epsilon) {
+
+							if (d < -double.Epsilon) {
+
 								controlPoint.m_direction = -v;
 								success = true;
+
 							}
+
 							if (info.m_maxBuildAngle > 89.0) {
+
 								v = new Vector3(v.z, 0.0f, -v.x);
-								var num2 = (float)(newPoint.m_direction.x * (double)v.x + newPoint.m_direction.z * (double)v.z);
+								var num2 = (float) (newPoint.m_direction.x*(double) v.x + newPoint.m_direction.z*(double) v.z);
+
 								if (num2 > double.Epsilon) {
+
 									controlPoint.m_direction = v;
 									success = true;
+
 								}
+
 								if (num2 < -double.Epsilon) {
+
 									controlPoint.m_direction = -v;
 									success = true;
+
 								}
+
+
 							}
+
 						}
+
 					}
+
 				}
-			} else if (oldPoint.m_direction.sqrMagnitude > 0.5) {
+			} else if (oldPoint.m_direction.sqrMagnitude > 0.5) { // Snapping to a direction
 				var v = oldPoint.m_direction;
 				if (newPoint.m_node == 0 && !newPoint.m_outside) {
 					Vector3 vector3_1 = Line2.Offset(VectorUtils.XZ(v), VectorUtils.XZ(oldPoint.m_position - newPoint.m_position));
