@@ -29,7 +29,7 @@ namespace PrecisionEngineering.Data.Calculations
 
 			var lineDirection = sourceControlPoint.m_position.Flatten().DirectionTo(destControlPoint.m_position.Flatten());
 
-			CalculateAngles(sourceControlPoint.m_position, sourceControlPoint.m_direction, lineDirection, measurements);
+			CalculateAngles(sourceControlPoint.m_position, sourceControlPoint.m_direction.Flatten(), lineDirection, measurements);
 
 		}
 
@@ -53,7 +53,7 @@ namespace PrecisionEngineering.Data.Calculations
 			NetManager.instance.m_segments.m_buffer[lastControlPoint.m_segment].GetClosestPositionAndDirection(
 				lastControlPoint.m_position, out segmentPosition, out segmentDirection);
 
-			CalculateAngles(segmentPosition, segmentDirection, lineDirection, measurements);
+			CalculateAngles(segmentPosition, segmentDirection.Flatten(), lineDirection, measurements);
 
 		}
 
