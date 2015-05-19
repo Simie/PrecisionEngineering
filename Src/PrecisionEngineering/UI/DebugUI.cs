@@ -24,8 +24,8 @@ namespace PrecisionEngineering.UI
 
 			this.backgroundSprite = "GenericPanel";
 			opacity = 0.7f;
-			this.width = 600;
-			this.height = 800;
+			this.width = 550;
+			this.height = 700;
 			this.canFocus = false;
 			this.relativePosition = new Vector3(10, 80f);
 

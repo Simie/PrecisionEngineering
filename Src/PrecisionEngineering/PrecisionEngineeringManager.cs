@@ -119,6 +119,9 @@ namespace PrecisionEngineering
 
 					var am = m as AngleMeasurement;
 
+					if (am.AngleSize < 1f)
+						continue;
+
 					Rendering.AngleRenderer.Render(cameraInfo, am);
 
 					var label = _ui.GetMeasurementLabel();
@@ -134,13 +137,20 @@ namespace PrecisionEngineering
 
 					var dm = m as DistanceMeasurement;
 
-				    if (Mathf.Approximately(dm.Length, 0f))
+				    if (dm.Length < 7f)
 				        continue;
 
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
 					var label = _ui.GetMeasurementLabel();
-					label.SetValue(string.Format("{0:#}{1}", (dm.Length / 8f).RoundToNearest(1), "u"));
+
+					var dist = string.Format("{0:#}{1}", (dm.Length / 8f).RoundToNearest(1), "u");
+
+					if (_secondaryDetailEnabled) {
+						dist += string.Format(" ({0:#}{1})", (dm.Length).RoundToNearest(1), "m");
+					}
+
+					label.SetValue(dist);
 					label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 
 					continue;
