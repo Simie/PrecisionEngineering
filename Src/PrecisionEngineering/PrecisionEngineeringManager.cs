@@ -134,6 +134,9 @@ namespace PrecisionEngineering
 
 					var dm = m as DistanceMeasurement;
 
+				    if (Mathf.Approximately(dm.Length, 0f))
+				        continue;
+
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
 					var label = _ui.GetMeasurementLabel();
