@@ -38,7 +38,7 @@ namespace PrecisionEngineering.UI
 			textScale = 0.8f;
 			textAlignment = UIHorizontalAlignment.Center;
 			verticalAlignment = UIVerticalAlignment.Middle;
-			zOrder = 16;
+			zOrder = 100;
 
 			pivot = UIPivotPoint.MiddleCenter;
 

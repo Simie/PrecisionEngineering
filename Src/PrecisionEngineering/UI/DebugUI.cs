@@ -26,7 +26,7 @@ namespace PrecisionEngineering.UI
 			opacity = 0.7f;
 			this.width = 600;
 			this.height = 800;
-
+			this.canFocus = false;
 			this.relativePosition = new Vector3(10, 80f);
 
 			_label = this.AddUIComponent<UILabel>();
