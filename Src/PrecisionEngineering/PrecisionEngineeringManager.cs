@@ -40,29 +40,12 @@ namespace PrecisionEngineering
 					_netTool = FindObjectOfType<NetTool>();
 					_netToolProxy = new NetToolProxy(_netTool);
 
+					_ui.NetToolProxy = _netToolProxy;
+
 				}
 
 				return _netToolProxy;
 				
-			}
-		}
-
-		protected PrecisionUI UI
-		{
-			get
-			{
-
-				if (_ui == null) {
-
-					_ui = new PrecisionUI();
-
-					if (Debug.Enabled)
-						_ui.CreateDebugUI(_netToolProxy, _calculator);
-
-				}
-
-				return _ui;
-
 			}
 		}
 
@@ -71,7 +54,7 @@ namespace PrecisionEngineering
 
 		private PrecisionCalculator _calculator;
 
-		private PrecisionUI _ui;
+		private readonly PrecisionUI _ui = new PrecisionUI();
 		private bool _secondaryDetailEnabled;
 
 		private bool _isLoaded = false;
@@ -89,6 +72,7 @@ namespace PrecisionEngineering
 			Settings.BlueprintColor = NetToolProxy.ToolController.m_validColor;
 
 			_calculator = new PrecisionCalculator();
+			_ui.Calculator = _calculator;
 
 		}
 
@@ -110,11 +94,11 @@ namespace PrecisionEngineering
 		{
 
 			base.EndOverlayImpl(cameraInfo);
-
+			
 			if (!_isLoaded)
 				return;
 
-			UI.ReleaseAll();
+			_ui.ReleaseAll();
 
 			// Toggle with shift
 			/*_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
@@ -137,7 +121,7 @@ namespace PrecisionEngineering
 
 					Rendering.AngleRenderer.Render(cameraInfo, am);
 
-					var label = UI.GetMeasurementLabel();
+					var label = _ui.GetMeasurementLabel();
 					label.SetValue(string.Format("{0:#.0}{1}", am.AngleSize.RoundToNearest(0.1f), "°"));
 					label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
 
@@ -152,7 +136,7 @@ namespace PrecisionEngineering
 
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
-					var label = UI.GetMeasurementLabel();
+					var label = _ui.GetMeasurementLabel();
 					label.SetValue(string.Format("{0:#}{1}", dm.Length.RoundToNearest(1), "m"));
 					label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 

@@ -4,8 +4,11 @@ using PrecisionEngineering.Data;
 
 namespace PrecisionEngineering.UI
 {
-	class PrecisionUI : UICustomControl
+	class PrecisionUI
 	{
+
+		public NetToolProxy NetToolProxy { get; set; }
+		public PrecisionCalculator Calculator { get; set; }
 
 		private UIView _rootView;
 
@@ -15,12 +18,28 @@ namespace PrecisionEngineering.UI
 		public PrecisionUI()
 		{
 
+
+		}
+
+		void Load()
+		{
+
 			_rootView = UIView.GetAView();
+
+			// When reloading a game, all of this will be destroyed anyway
+			_activeAngleLabels.Clear();
+			_angleLabelPool.Clear();
+
+			if (Debug.Enabled)
+				CreateDebugUI(NetToolProxy, Calculator);
 
 		}
 
 		public void CreateDebugUI(NetToolProxy netTool, PrecisionCalculator calc)
 		{
+
+			if (_rootView == null)
+				Load();
 
 			var p = _rootView.AddUIComponent(typeof(DebugUI)) as DebugUI;
 
@@ -31,6 +50,9 @@ namespace PrecisionEngineering.UI
 
 		public void ReleaseAll()
 		{
+
+			if (_rootView == null)
+				Load();
 
 			for (var i = _activeAngleLabels.Count - 1; i >= 0; i--) {
 
@@ -45,6 +67,9 @@ namespace PrecisionEngineering.UI
 
 		public MeasurementLabel GetMeasurementLabel()
 		{
+
+			if (_rootView == null)
+				Load();
 
 			MeasurementLabel l;
 
