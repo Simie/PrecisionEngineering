@@ -25,7 +25,7 @@ namespace PrecisionEngineering.Data
 			_measurements.Clear();
 			DebugState = "";
 
-			if (!netTool.IsEnabled)
+			if (!netTool.IsEnabled || netTool.Mode == NetTool.Mode.Upgrade)
 				return;
 
 			Segment.CalculateSegmentBranchAngles(netTool, _measurements);
