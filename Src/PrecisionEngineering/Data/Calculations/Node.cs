@@ -32,7 +32,12 @@ namespace PrecisionEngineering.Data.Calculations
 
 			var firstNewNode = netTool.NodePositions[0];
 
-			CalculateAngles(sourceNodeId, firstNewNode.m_direction, measurements);
+		    var direction = firstNewNode.m_direction;
+
+		    if (netTool.NodePositions.m_size <= 1)
+		        direction = netTool.ControlPoints[1].m_direction;
+
+			CalculateAngles(sourceNodeId, direction, measurements);
 
 		}
 
