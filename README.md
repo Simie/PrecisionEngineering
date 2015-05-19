@@ -1,5 +1,4 @@
 # Precision Engineering
-## A mod for Cities: Skylines
 
 Precision Engineering adds angle and distance measurement to Cities: Skylines.
 
