@@ -134,7 +134,7 @@ namespace PrecisionEngineering.Data.Calculations
 				: MeasurementFlags.Secondary; 
 	
 			var rightFlags = nearestLeftSegmentId > 0
-				? (nearestRightAngle < nearestLeftAngle ? MeasurementFlags.Primary : MeasurementFlags.Secondary)
+				? (nearestRightAngle <= nearestLeftAngle ? MeasurementFlags.Primary : MeasurementFlags.Secondary)
 				: MeasurementFlags.Secondary; 
 
 			if (nearestLeftSegmentId > 0) {
