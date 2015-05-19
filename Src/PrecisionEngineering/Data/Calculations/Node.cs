@@ -27,7 +27,7 @@ namespace PrecisionEngineering.Data.Calculations
 			if (sourceNodeId == 0)
 				return;
 
-			if (netTool.NodePositions.m_size < 2)
+			if (netTool.ControlPointsCount < 1)
 				return;
 
 			var firstNewNode = netTool.NodePositions[0];

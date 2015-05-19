@@ -15,6 +15,21 @@ namespace PrecisionEngineering
 		ISimulationManager, IRenderableManager
 	{
 
+		private static bool _hasRegistered;
+
+		public static void OnLevelLoaded()
+		{
+
+			if (_hasRegistered)
+				return;
+
+			Debug.Log("Registering Manager");
+
+			SimulationManager.RegisterManager(instance);
+			_hasRegistered = true;
+
+		}
+
 		protected NetToolProxy NetToolProxy
 		{
 			get
@@ -29,6 +44,25 @@ namespace PrecisionEngineering
 
 				return _netToolProxy;
 				
+			}
+		}
+
+		protected PrecisionUI UI
+		{
+			get
+			{
+
+				if (_ui == null) {
+
+					_ui = new PrecisionUI();
+
+					if (Debug.Enabled)
+						_ui.CreateDebugUI(_netToolProxy, _calculator);
+
+				}
+
+				return _ui;
+
 			}
 		}
 
@@ -55,10 +89,6 @@ namespace PrecisionEngineering
 			Settings.BlueprintColor = NetToolProxy.ToolController.m_validColor;
 
 			_calculator = new PrecisionCalculator();
-			_ui = new PrecisionUI();
-
-			if (Debug.Enabled)
-				_ui.CreateDebugUI(_netToolProxy, _calculator);
 
 		}
 
@@ -81,7 +111,10 @@ namespace PrecisionEngineering
 
 			base.EndOverlayImpl(cameraInfo);
 
-			_ui.ReleaseAll();
+			if (!_isLoaded)
+				return;
+
+			UI.ReleaseAll();
 
 			// Toggle with shift
 			/*_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
@@ -104,7 +137,7 @@ namespace PrecisionEngineering
 
 					Rendering.AngleRenderer.Render(cameraInfo, am);
 
-					var label = _ui.GetMeasurementLabel();
+					var label = UI.GetMeasurementLabel();
 					label.SetValue(string.Format("{0:#.0}{1}", am.AngleSize.RoundToNearest(0.1f), "°"));
 					label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
 
@@ -119,7 +152,7 @@ namespace PrecisionEngineering
 
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
-					var label = _ui.GetMeasurementLabel();
+					var label = UI.GetMeasurementLabel();
 					label.SetValue(string.Format("{0:#}{1}", dm.Length.RoundToNearest(1), "m"));
 					label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 
