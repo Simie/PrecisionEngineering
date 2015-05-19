@@ -137,14 +137,14 @@ namespace PrecisionEngineering.Data
 			if (count == 0)
 				return;
 
-			List<ushort> sourceNodeConnectedSegmentIds = null;
+			/*//List<ushort> sourceNodeConnectedSegmentIds = null;
 
 			if (netTool.ControlPoints[0].m_node > 0) {
 
 				sourceNodeConnectedSegmentIds =
 					NetNodeUtility.GetNodeSegmentIds(NetManager.instance.m_nodes.m_buffer[netTool.ControlPoints[0].m_node]);
 
-			}
+			}*/
 			var p1 = lastNode.m_position;
 
 			var minDist = float.MaxValue;
@@ -153,8 +153,11 @@ namespace PrecisionEngineering.Data
 
 			for (var i = 0; i < count; i++) {
 
-				// Skip segments attached to the node we are building from
+				/*// Skip segments attached to the node we are building from
 				if (sourceNodeConnectedSegmentIds != null && sourceNodeConnectedSegmentIds.Contains(_segments[i]))
+					continue;*/
+
+				if (netTool.ControlPoints[0].m_segment > 0 && _segments[i] == netTool.ControlPoints[0].m_segment)
 					continue;
 
 				var s = NetManager.instance.m_segments.m_buffer[_segments[i]];

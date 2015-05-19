@@ -11,6 +11,7 @@ namespace PrecisionEngineering.Data
 	public class NetToolProxy
 	{
 
+		public bool IsValid { get { return _target != null; } }
 
 		public bool IsEnabled { get { return _target.enabled; } }
 
@@ -58,7 +59,6 @@ namespace PrecisionEngineering.Data
 			_controlPointCountField = GetPrivateField("m_controlPointCount");
 			_controlPointsField = GetPrivateField("m_controlPoints");
 			_toolControllerField = GetPrivateField("m_toolController");
-
 
 		}
 

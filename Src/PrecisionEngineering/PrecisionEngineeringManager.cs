@@ -11,8 +11,26 @@ using Object = UnityEngine.Object;
 namespace PrecisionEngineering
 {
 
-	class PrecisionEngineeringManager : SimulationManagerBase<PrecisionEngineeringManager, MonoBehaviour>, ISimulationManager, IRenderableManager
+	internal class PrecisionEngineeringManager : SimulationManagerBase<PrecisionEngineeringManager, MonoBehaviour>,
+		ISimulationManager, IRenderableManager
 	{
+
+		protected NetToolProxy NetToolProxy
+		{
+			get
+			{
+
+				if (_netToolProxy == null || !_netToolProxy.IsValid) {
+
+					_netTool = FindObjectOfType<NetTool>();
+					_netToolProxy = new NetToolProxy(_netTool);
+
+				}
+
+				return _netToolProxy;
+				
+			}
+		}
 
 		private NetTool _netTool;
 		private NetToolProxy _netToolProxy;
@@ -22,20 +40,21 @@ namespace PrecisionEngineering
 		private PrecisionUI _ui;
 		private bool _secondaryDetailEnabled;
 
-		void Start()
+		private bool _isLoaded = false;
+
+		private void Load()
 		{
 
-			Debug.Log("Manager Start");
+			if (_isLoaded)
+				return;
 
-			_netTool = FindObjectOfType<NetTool>();
-			_netToolProxy = new NetToolProxy(_netTool);
+			_isLoaded = true;
 
-			Settings.BlueprintColor = _netToolProxy.ToolController.m_validColor;
+			Debug.Log("Manager Load");
+
+			Settings.BlueprintColor = NetToolProxy.ToolController.m_validColor;
 
 			_calculator = new PrecisionCalculator();
-
-			Debug.Log(string.Format("Net Tool: {0}", _netTool));
-
 			_ui = new PrecisionUI();
 
 			if (Debug.Enabled)
@@ -46,10 +65,14 @@ namespace PrecisionEngineering
 		protected override void SimulationStepImpl(int subStep)
 		{
 
+			if (!_isLoaded)
+				Load();
+
 			base.SimulationStepImpl(subStep);
 
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-			_calculator.Update(_netToolProxy);
+			
+			_calculator.Update(NetToolProxy);
 
 		}
 
@@ -60,9 +83,13 @@ namespace PrecisionEngineering
 
 			_ui.ReleaseAll();
 
-			_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+			// Toggle with shift
+			/*_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
 				? !_secondaryDetailEnabled
-				: _secondaryDetailEnabled;
+				: _secondaryDetailEnabled;*/
+
+			// Activate with shift
+			_secondaryDetailEnabled = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
 			for (var i = 0; i < _calculator.Measurements.Count; i++) {
 
