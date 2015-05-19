@@ -140,7 +140,7 @@ namespace PrecisionEngineering
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
 					var label = _ui.GetMeasurementLabel();
-					label.SetValue(string.Format("{0:#}{1}", dm.Length.RoundToNearest(1), "m"));
+					label.SetValue(string.Format("{0:#}{1}", (dm.Length / 8f).RoundToNearest(1), "u"));
 					label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 
 					continue;
