@@ -6,19 +6,20 @@ using UnityEngine;
 
 namespace PrecisionEngineering
 {
-	class SnapController
+	internal class SnapController
 	{
 
+		public static string DebugPrint = "";
+
 		private static readonly MethodInfo SnapDirectionOriginalMethodInfo = typeof (NetTool).GetMethod("SnapDirection");
-		private static readonly MethodInfo SnapDirectionOverrideMethodInfo = typeof (SnapController).GetMethod("SnapDirectionOverride");
+
+		private static readonly MethodInfo SnapDirectionOverrideMethodInfo =
+			typeof (SnapController).GetMethod("SnapDirectionOverride");
 
 		private static RedirectCallsState _revertState;
 		private static bool _hasControl;
 
-		static SnapController()
-		{
-			
-		}
+		static SnapController() {}
 
 		public static void StealControl()
 		{
@@ -48,6 +49,12 @@ namespace PrecisionEngineering
 			NetInfo info, out bool success, out float minDistanceSq)
 		{
 
+			if (Debug.Enabled) {
+
+				DebugPrint = string.Format("oldPoint: {0}\nnewPoint:{1}", StringUtil.ToString(oldPoint), StringUtil.ToString(newPoint));
+
+			}
+
 			// Quick bypass if custom snapping is disabled - jump to the original CS implementation
 			if (!EnableSnapping) {
 
@@ -56,7 +63,7 @@ namespace PrecisionEngineering
 			}
 
 			minDistanceSq = info.GetMinNodeDistance();
-			minDistanceSq = minDistanceSq * minDistanceSq;
+			minDistanceSq = minDistanceSq*minDistanceSq;
 			var controlPoint = newPoint;
 			success = false;
 
@@ -75,7 +82,7 @@ namespace PrecisionEngineering
 				var closestSegmentId = NetNodeUtility.GetClosestSegmentId(sourceNodeId, userLineDirection);
 
 				if (closestSegmentId > 0) {
-					
+
 					// Snap to angle increments originating from this closest segment
 
 					var closestSegmentDirection = NetNodeUtility.GetSegmentExitDirection(sourceNodeId, closestSegmentId);
@@ -105,13 +112,13 @@ namespace PrecisionEngineering
 				var sourceSegmentId = oldPoint.m_segment;
 				var sourceSegment = NetManager.instance.m_segments.m_buffer[sourceSegmentId];
 
-				// Direction and length of the line from the segment branch point to the users control point
+				Vector3 segmentDirection;
+				Vector3 segmentPosition;
+
+				// Direction and length of the line between control points
 				var userLineDirection = (newPoint.m_position - oldPoint.m_position).Flatten();
 				var userLineLength = userLineDirection.magnitude;
 				userLineDirection.Normalize();
-
-				Vector3 segmentDirection;
-				Vector3 segmentPosition;
 
 				// Get direction of the segment at the branch position
 				sourceSegment.GetClosestPositionAndDirection(oldPoint.m_position, out segmentPosition, out segmentDirection);
@@ -120,20 +127,43 @@ namespace PrecisionEngineering
 
 				segmentDirection = segmentDirection.Flatten().normalized;
 
-				var snappedAngle = Mathf.Round(currentAngle / Settings.SnapAngle) * Settings.SnapAngle;
-				var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up) * segmentDirection;
+				var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
+				var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*segmentDirection;
 
 				controlPoint.m_direction = snappedDirection.normalized;
-				controlPoint.m_position = oldPoint.m_position + userLineLength * controlPoint.m_direction;
+				controlPoint.m_position = oldPoint.m_position + userLineLength*controlPoint.m_direction;
 				controlPoint.m_position.y = newPoint.m_position.y;
 
 				minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
 
 				success = true;
 
+			} else if(oldPoint.m_direction.sqrMagnitude > 0.5f) {
+
+				if (newPoint.m_node == 0 && !newPoint.m_outside) {
+
+					// Let's do some snapping between control point directions
+
+					var currentAngle = Vector3Extensions.Angle(oldPoint.m_direction, newPoint.m_direction, Vector3.up);
+
+					var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
+					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*oldPoint.m_direction.Flatten();
+
+					controlPoint.m_direction = snappedDirection.normalized;
+
+					controlPoint.m_position = oldPoint.m_position +
+					                          Vector3.Distance(oldPoint.m_position.Flatten(), newPoint.m_position.Flatten())*
+					                          controlPoint.m_direction;
+
+					controlPoint.m_position.y = newPoint.m_position.y;
+
+					success = true;
+
+				}
+
 			}
 
-			if(success)
+			if (success)
 				return controlPoint;
 
 			Original:

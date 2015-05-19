@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ColossalFramework.UI;
 using PrecisionEngineering.Data;
+using PrecisionEngineering.Utilities;
 using UnityEngine;
 
 namespace PrecisionEngineering.UI
@@ -42,7 +43,10 @@ namespace PrecisionEngineering.UI
 
 			var txt = new StringBuilder();
 
-			txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
+			txt.AppendLine(string.Format("SnapController:\n{0}", SnapController.DebugPrint));
+			SnapController.DebugPrint = "";
+
+            txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
 			txt.AppendLine(string.Format(", Node Count: {0}", NetTool.NodePositions.m_size));
 
 			txt.AppendLine("Control Points: ");
@@ -50,9 +54,7 @@ namespace PrecisionEngineering.UI
 			for (var i = 0; i < NetTool.ControlPointsCount+1; i++) {
 
 				var pt = NetTool.ControlPoints[i];
-
-				txt.AppendLine(string.Format("\tPosition: {0}, Direction: {1}", pt.m_position, pt.m_direction));
-				txt.AppendLine(string.Format("\t\t, Node: {0}, Segment: {1}", pt.m_node, pt.m_segment));
+				txt.AppendLine(StringUtil.ToString(pt));
 
 			}
 
@@ -62,10 +64,12 @@ namespace PrecisionEngineering.UI
 			for (var i = 0; i < NetTool.NodePositions.m_size; i++) {
 
 				var pt = NetTool.NodePositions[i];
-				txt.AppendLine(string.Format("\tPosition: {0}, Direction: {1}", pt.m_position,
-					pt.m_direction));
+				txt.AppendLine(StringUtil.ToString(pt));
 
 			}
+
+			txt.AppendLine("-----------------");
+			txt.AppendLine("Measurements: ");
 
 			if (Calculator.Measurements.Count == 0)
 				txt.AppendLine("No Measurements Available");
@@ -82,7 +86,6 @@ namespace PrecisionEngineering.UI
 			_label.text = txt.ToString();
 
 		}
-
 
 	}
 }

@@ -68,6 +68,7 @@
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\NetNodeUtility.cs" />
     <Compile Include="Utilities\RedirectionHelper.cs" />
+    <Compile Include="Utilities\StringUtil.cs" />
     <Compile Include="Utilities\Util.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />
     <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
