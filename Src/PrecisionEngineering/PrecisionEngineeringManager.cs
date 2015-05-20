@@ -15,38 +15,35 @@ namespace PrecisionEngineering
 		ISimulationManager, IRenderableManager
 	{
 
+		/// <summary>
+		/// Managers should only be registered once, and then they persist over loads
+		/// </summary>
 		private static bool _hasRegistered;
 
 		public static void OnLevelLoaded()
 		{
 
-			if (_hasRegistered)
-				return;
+			if (!_hasRegistered) {
 
-			Debug.Log("Registering Manager");
+				Debug.Log("Registering Manager");
 
-			SimulationManager.RegisterManager(instance);
-			_hasRegistered = true;
+				SimulationManager.RegisterManager(instance);
+				_hasRegistered = true;
+
+			}
+
+			instance.Load();
 
 		}
 
-		protected NetToolProxy NetToolProxy
+		public static void OnLevelUnloaded()
 		{
-			get
-			{
+			instance.Unload();
+		}
 
-				if (_netToolProxy == null || !_netToolProxy.IsValid) {
-
-					_netTool = FindObjectOfType<NetTool>();
-					_netToolProxy = new NetToolProxy(_netTool);
-
-					_ui.NetToolProxy = _netToolProxy;
-
-				}
-
-				return _netToolProxy;
-				
-			}
+		public bool IsEnabled
+		{
+			get { return _isLoaded && _netTool != null; }
 		}
 
 		private NetTool _netTool;
@@ -69,24 +66,57 @@ namespace PrecisionEngineering
 
 			Debug.Log("Manager Load");
 
-			Settings.BlueprintColor = NetToolProxy.ToolController.m_validColor;
-
 			_calculator = new PrecisionCalculator();
 			_ui.Calculator = _calculator;
+
+		}
+
+		private void Unload()
+		{
+
+			Debug.Log("Manager Unload");
+
+			_netToolProxy = null;
+			_netTool = null;
+
+			_isLoaded = false;
+
+		}
+
+		private void Update()
+		{
+
+			if (_isLoaded && _netTool == null) {
+
+				Debug.Log("Loading NetTool");
+
+				_netTool = FindObjectOfType<NetTool>();
+
+				Debug.Log("NetTool: " + _netTool);
+
+				if (_netTool != null) {
+
+					_netToolProxy = new NetToolProxy(_netTool);
+					_ui.NetToolProxy = _netToolProxy;
+					Settings.BlueprintColor = _netToolProxy.ToolController.m_validColor;
+
+				}
+
+			}
 
 		}
 
 		protected override void SimulationStepImpl(int subStep)
 		{
 
-			if (!_isLoaded)
-				Load();
+			if (!IsEnabled)
+				return;
 
 			base.SimulationStepImpl(subStep);
 
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-			
-			_calculator.Update(NetToolProxy);
+
+			_calculator.Update(_netToolProxy);
 
 		}
 
@@ -94,8 +124,8 @@ namespace PrecisionEngineering
 		{
 
 			base.EndOverlayImpl(cameraInfo);
-			
-			if (!_isLoaded)
+
+			if (!IsEnabled)
 				return;
 
 			_ui.ReleaseAll();
@@ -137,14 +167,14 @@ namespace PrecisionEngineering
 
 					var dm = m as DistanceMeasurement;
 
-				    if (dm.Length < 7f)
-				        continue;
+					if (dm.Length < 7f)
+						continue;
 
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
 					var label = _ui.GetMeasurementLabel();
 
-					var dist = string.Format("{0:#}{1}", (dm.Length / 8f).RoundToNearest(1), "u");
+					var dist = string.Format("{0:#}{1}", (dm.Length/8f).RoundToNearest(1), "u");
 
 					if (_secondaryDetailEnabled) {
 						dist += string.Format(" ({0:#}{1})", (dm.Length).RoundToNearest(1), "m");

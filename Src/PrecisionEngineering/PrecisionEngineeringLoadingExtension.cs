@@ -34,6 +34,8 @@ namespace PrecisionEngineering
 
 			SnapController.ReturnControl();
 
+            PrecisionEngineeringManager.OnLevelUnloaded();
+
 			base.OnLevelUnloading();
 
 		}
