@@ -183,7 +183,7 @@ namespace PrecisionEngineering
 						var heightdiff = (int)(dm.RelativeHeight).RoundToNearest(1);
 
 						if (Mathf.Abs(heightdiff) > 0) {
-							dist += string.Format("\n(Height Diff: {0}{1})", heightdiff, "m");
+							dist += string.Format("\n(Slope: {0}{1})", heightdiff, "m");
 						}
 
 					}
