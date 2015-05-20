@@ -13,6 +13,8 @@ namespace PrecisionEngineering.Data
 
 		public Vector3 EndPosition { get; private set; }
 
+		public float RelativeHeight { get { return EndPosition.y - StartPosition.y; } }
+
 		public DistanceMeasurement(float length, Vector3 position, bool isStraight, Vector3 startPosition, Vector3 endPosition, MeasurementFlags flags)
 			: base(position, flags)
 		{

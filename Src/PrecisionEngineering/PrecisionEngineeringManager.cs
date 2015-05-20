@@ -43,7 +43,7 @@ namespace PrecisionEngineering
 
 		public bool IsEnabled
 		{
-			get { return _isLoaded && _netTool != null; }
+			get { return _isLoaded && _netToolProxy != null && _netToolProxy.IsValid; }
 		}
 
 		private NetTool _netTool;
@@ -86,7 +86,7 @@ namespace PrecisionEngineering
 		private void Update()
 		{
 
-			if (_isLoaded && _netTool == null) {
+			if (_isLoaded && !IsEnabled) {
 
 				Debug.Log("Loading NetTool");
 
@@ -177,7 +177,15 @@ namespace PrecisionEngineering
 					var dist = string.Format("{0:#}{1}", (dm.Length/8f).RoundToNearest(1), "u");
 
 					if (_secondaryDetailEnabled) {
-						dist += string.Format(" ({0:#}{1})", (dm.Length).RoundToNearest(1), "m");
+
+						dist += string.Format(" ({0}{1})", (int)(dm.Length).RoundToNearest(1), "m");
+
+						var heightdiff = (int)(dm.RelativeHeight).RoundToNearest(1);
+
+						if (Mathf.Abs(heightdiff) > 0) {
+							dist += string.Format("\n(Height Diff: {0}{1})", heightdiff, "m");
+						}
+
 					}
 
 					label.SetValue(dist);
