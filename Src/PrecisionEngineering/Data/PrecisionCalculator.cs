@@ -169,7 +169,20 @@ namespace PrecisionEngineering.Data
 
 				var p2 = s.GetClosestPosition(p1);
 
-				var dist = Vector3.Distance(p1, p2);
+				// Discard if closest segment position is too close to the source node
+				if (Vector3.Distance(netTool.ControlPoints[0].m_position, p2) < Settings.MinimumDistanceMeasure)
+					continue;
+
+				var closestPoint = Util.ClosestPointOnLine(p1, p2, netTool.ControlPoints[0].m_position);
+
+				// Discard if the line contains the start control point
+				if (Vector3.Distance(closestPoint, netTool.ControlPoints[0].m_position) < Settings.MinimumDistanceMeasure)
+					continue;
+
+				var direction = p2 - p1;
+				var dist = direction.sqrMagnitude;
+				direction.Normalize();
+				
 
 				if (dist < minDist) {
 
@@ -181,7 +194,7 @@ namespace PrecisionEngineering.Data
 
 			}
 
-			if (found && minDist > Settings.MinimumDistanceMeasure) {
+			if (found && Mathf.Sqrt(minDist) > Settings.MinimumDistanceMeasure) {
 
 				measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true, p1, p,
 					MeasurementFlags.Secondary));
