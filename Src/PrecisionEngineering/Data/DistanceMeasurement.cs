@@ -26,7 +26,7 @@ namespace PrecisionEngineering.Data
 
 		public override string ToString()
 		{
-			return string.Format("Distance: {0}m, @{1}, IsStraight: {2}", Length, Position, IsStraight);
+			return string.Format("Distance: {0}m, @{1}, IsStraight: {2}\n\t{3}", Length, Position, IsStraight, Flags);
 		}
 
 	}

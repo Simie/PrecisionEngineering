@@ -39,6 +39,8 @@ namespace PrecisionEngineering.Data
 			CalculateControlPointDistances(netTool, _measurements);
 			CalculateControlPointAngle(netTool, _measurements);
 
+			CalculateControlPointElevation(netTool, _measurements);
+
 		}
 
 		private static void CalculateControlPointDistances(NetToolProxy netTool, ICollection<Measurement> measurements)
@@ -188,6 +190,27 @@ namespace PrecisionEngineering.Data
 
 		}
 
+		private void CalculateControlPointElevation(NetToolProxy netTool, IList<Measurement> measurements)
+		{
+
+			for (var i = 0; i <= netTool.ControlPointsCount; i++) {
+
+				// Only display the last control point elevation as a primary measurement
+				var flag = (i == netTool.ControlPointsCount) ? MeasurementFlags.Primary : MeasurementFlags.Secondary;
+
+				var controlPoint = netTool.ControlPoints[i];
+
+				var e = controlPoint.m_elevation;
+
+				var botPos = controlPoint.m_position;
+				var topPos = controlPoint.m_position - new Vector3(0, controlPoint.m_elevation, 0);
+
+				measurements.Add(new DistanceMeasurement(e, Vector3Extensions.Average(botPos, topPos), true, botPos, topPos,
+					MeasurementFlags.HideOverlay | MeasurementFlags.Height | flag));
+
+			}
+
+		}
 
 	}
 }

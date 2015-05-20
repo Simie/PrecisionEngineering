@@ -142,7 +142,7 @@ namespace PrecisionEngineering
 
 				var m = _calculator.Measurements[i];
 
-				if (m.Flags == MeasurementFlags.Secondary && !_secondaryDetailEnabled)
+				if ((m.Flags & MeasurementFlags.Secondary) != 0 && !_secondaryDetailEnabled)
 					continue;
 
 				if (m is AngleMeasurement) {
@@ -167,23 +167,33 @@ namespace PrecisionEngineering
 
 					var dm = m as DistanceMeasurement;
 
-					if (dm.Length < 7f)
+					if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure)
 						continue;
 
 					Rendering.DistanceRenderer.Render(cameraInfo, dm);
 
 					var label = _ui.GetMeasurementLabel();
 
-					var dist = string.Format("{0:#}{1}", (dm.Length/8f).RoundToNearest(1), "u");
+					string dist;
 
-					if (_secondaryDetailEnabled) {
+					if ((dm.Flags & MeasurementFlags.Height) != 0) {
 
-						dist += string.Format(" ({0}{1})", (int)(dm.Length).RoundToNearest(1), "m");
+						dist = string.Format("H: {0:#}{1}", (dm.Length).RoundToNearest(1), "m");
 
-						var heightdiff = (int)(dm.RelativeHeight).RoundToNearest(1);
+					} else {
 
-						if (Mathf.Abs(heightdiff) > 0) {
-							dist += string.Format("\n(Slope: {0}{1})", heightdiff, "m");
+						dist = string.Format("{0:#}{1}", (dm.Length/8f).RoundToNearest(1), "u");
+
+						if (_secondaryDetailEnabled) {
+
+							dist += string.Format(" ({0}{1})", (int) (dm.Length).RoundToNearest(1), "m");
+
+							var heightdiff = (int) (dm.RelativeHeight).RoundToNearest(1);
+
+							if (Mathf.Abs(heightdiff) > 0) {
+								dist += string.Format("\n(Elev: {0}{1})", heightdiff, "m");
+							}
+
 						}
 
 					}

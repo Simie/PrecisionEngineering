@@ -7,5 +7,6 @@ namespace PrecisionEngineering.Data.Calculations
 {
 	internal static class Guides
 	{
+
 	}
 }

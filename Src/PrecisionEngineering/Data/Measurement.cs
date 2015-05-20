@@ -10,11 +10,28 @@ namespace PrecisionEngineering.Data
 	{
 
 		None = 0,
-		Primary = 0x1,
-		Secondary = 0x2,
-		HideOverlay = 0x4,
-		Blueprint = 0x8,
-		Guide = 0x16
+		Primary = 1 << 0,
+		Secondary = 1 << 1,
+
+		/// <summary>
+		/// Hide any rendering overlays for this measurement
+		/// </summary>
+		HideOverlay = 1 << 2,
+
+		/// <summary>
+		/// This measurement is part of a blueprint operation (ie placing control points of a curve)
+		/// </summary>
+		Blueprint = 1 << 3,
+
+		/// <summary>
+		/// This measurement is used as a snapping guide
+		/// </summary>
+		Guide = 1 << 4,
+
+		/// <summary>
+		/// Indicate that a PositionMeasurement is a height measurement
+		/// </summary>
+		Height = 1 << 5,
 
 	}
 

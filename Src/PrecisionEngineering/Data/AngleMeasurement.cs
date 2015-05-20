@@ -19,7 +19,7 @@ namespace PrecisionEngineering.Data
 		public override string ToString()
 		{
 			return
-				string.Format("Angle: {0}deg, @{1}, facing: {2}", AngleSize, Position, AngleNormal);
+				string.Format("Angle: {0}deg, @{1}, facing: {2}\n\t{3}", AngleSize, Position, AngleNormal, Flags);
 		}
 
 	}
