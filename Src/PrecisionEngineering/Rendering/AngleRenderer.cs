@@ -17,9 +17,9 @@ namespace PrecisionEngineering.Rendering
 		{
 
 			if ((flags & MeasurementFlags.Blueprint) != 0)
-				return 15f;
+				return 10f;
 
-			return 25f;
+			return 15f;
 
 		}
 
@@ -68,9 +68,9 @@ namespace PrecisionEngineering.Rendering
 				var isFirst = i == 0;
 				var isLast = i == arcs.Count - 1;
 
-				renderManager.OverlayEffect.DrawBezier(cameraInfo, GetAngleColor(angle.Flags), arcs[i], 3f, 0f, 0f,
+				renderManager.OverlayEffect.DrawBezier(cameraInfo, GetAngleColor(angle.Flags), arcs[i], .7f, 0f, 0f,
 					angle.Position.y - 20f,
-					angle.Position.y + 20f, true, true);
+					angle.Position.y + 20f, false, true);
 
 			}
 

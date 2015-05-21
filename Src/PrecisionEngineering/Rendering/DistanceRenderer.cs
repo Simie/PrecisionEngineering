@@ -13,7 +13,7 @@ namespace PrecisionEngineering.Rendering
 	static class DistanceRenderer
 	{
 
-		public const float Size = 2f;
+		public const float Size = 1f;
 
 		public static Vector3 GetLabelWorldPosition(DistanceMeasurement distance)
 		{
