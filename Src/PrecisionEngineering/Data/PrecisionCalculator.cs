@@ -79,6 +79,10 @@ namespace PrecisionEngineering.Data
 			var angle = Vector3.Angle(d1, d2);
 			var angleDirection = Vector3.Normalize(d1 + d2);
 
+			// 180deg angle special case
+			if (angleDirection.sqrMagnitude < 0.5f)
+				angleDirection = Vector3.Cross(d1, Vector3.up);
+
 			measurements.Add(new AngleMeasurement(angle, p2.m_position, angleDirection,
 				MeasurementFlags.Primary | MeasurementFlags.Blueprint));
 
