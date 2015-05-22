@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ColossalFramework.UI;
 using PrecisionEngineering.Data;
+using PrecisionEngineering.Detour;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
@@ -36,22 +37,20 @@ namespace PrecisionEngineering.UI
 
 		}
 
-		public override void LateUpdate()
+		public void DoUpdate()
 		{
-
-			base.LateUpdate();
 
 			var txt = new StringBuilder();
 
 			txt.AppendLine(string.Format("SnapController:\n{0}", SnapController.DebugPrint));
 			SnapController.DebugPrint = "";
 
-            txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
+			txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
 			txt.AppendLine(string.Format(", Node Count: {0}", NetTool.NodePositions.m_size));
 
 			txt.AppendLine("Control Points: ");
 
-			for (var i = 0; i < NetTool.ControlPointsCount+1; i++) {
+			for (var i = 0; i < NetTool.ControlPointsCount + 1; i++) {
 
 				var pt = NetTool.ControlPoints[i];
 				txt.AppendLine(StringUtil.ToString(pt));
@@ -77,6 +76,17 @@ namespace PrecisionEngineering.UI
 			for (var i = 0; i < Calculator.Measurements.Count; i++) {
 
 				txt.AppendLine(Calculator.Measurements[i].ToString());
+
+			}
+			txt.AppendLine("-----------------");
+			txt.AppendLine("Guide Lines: ");
+
+			if (SnapController.GuideLines.Count == 0)
+				txt.AppendLine("No GuideLines Available");
+
+			for (var i = 0; i < SnapController.GuideLines.Count; i++) {
+
+				txt.AppendLine(SnapController.GuideLines[i].ToString());
 
 			}
 

@@ -60,27 +60,31 @@
     <Compile Include="Data\Calculations\Node.cs" />
     <Compile Include="Data\Calculations\Segment.cs" />
     <Compile Include="Data\DistanceMeasurement.cs" />
+    <Compile Include="Data\GuideLine.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Data\Measurement.cs" />
+    <Compile Include="Detour\FakeRoadAI.cs" />
     <Compile Include="Rendering\DistanceRenderer.cs" />
+    <Compile Include="Rendering\GuideLineRenderer.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="SnapController.cs" />
+    <Compile Include="Detour\SnapController.cs" />
     <Compile Include="UI\MeasurementLabel.cs" />
     <Compile Include="Utilities\BezierUtil.cs" />
     <Compile Include="Utilities\NetNodeUtility.cs" />
-    <Compile Include="Utilities\RedirectionHelper.cs" />
+    <Compile Include="Utilities\NetUtil.cs" />
+    <Compile Include="Detour\RedirectionHelper.cs" />
     <Compile Include="Utilities\StringUtil.cs" />
     <Compile Include="Utilities\Util.cs" />
     <Compile Include="Utilities\Vector3Extensions.cs" />
-    <Compile Include="PrecisionEngineeringLoadingExtension.cs" />
+    <Compile Include="LoadingExtension.cs" />
     <Compile Include="Data\NetToolProxy.cs" />
     <Compile Include="Data\PrecisionCalculator.cs" />
-    <Compile Include="PrecisionEngineeringManager.cs" />
+    <Compile Include="Manager.cs" />
     <Compile Include="Rendering\AngleRenderer.cs" />
     <Compile Include="UI\DebugUI.cs" />
     <Compile Include="UI\PrecisionUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PrecisionEngineeringMod.cs" />
+    <Compile Include="Mod.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

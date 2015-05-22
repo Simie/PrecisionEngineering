@@ -2,7 +2,7 @@
 
 namespace PrecisionEngineering
 {
-	public class PrecisionEngineeringMod : IUserMod
+	public class Mod : IUserMod
 	{
 
 		public string Name

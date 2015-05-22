@@ -1,12 +1,13 @@
 ﻿using ColossalFramework;
 using ICities;
+using PrecisionEngineering.Detour;
 using PrecisionEngineering.UI;
 using PrecisionEngineering.Utilities;
 using UE = UnityEngine;
 
 namespace PrecisionEngineering
 {
-	public class PrecisionEngineeringLoadingExtension : LoadingExtensionBase
+	public class LoadingExtension : LoadingExtensionBase
 	{
 
 		public override void OnCreated(ILoading loading)
@@ -19,11 +20,12 @@ namespace PrecisionEngineering
 
 			base.OnLevelLoaded(mode);
 
-			PrecisionEngineeringManager.OnLevelLoaded();
+			Manager.OnLevelLoaded();
 
 			Debug.Log("Detouring NetTool.SnapDirection()...");
 
             SnapController.StealControl();
+			FakeRoadAI.Deploy();
 
 		}
 
@@ -33,8 +35,9 @@ namespace PrecisionEngineering
 			Debug.Log("Returning control of NetTool.SnapDirection()...");
 
 			SnapController.ReturnControl();
+			FakeRoadAI.Revert();
 
-            PrecisionEngineeringManager.OnLevelUnloaded();
+            Manager.OnLevelUnloaded();
 
 			base.OnLevelUnloading();
 

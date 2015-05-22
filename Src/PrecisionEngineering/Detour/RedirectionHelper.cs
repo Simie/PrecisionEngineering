@@ -25,7 +25,7 @@ THE SOFTWARE.
 using System;
 using System.Reflection;
 
-namespace PrecisionEngineering.Utilities
+namespace PrecisionEngineering.Detour
 {
 	public struct RedirectCallsState
 	{

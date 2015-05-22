@@ -168,7 +168,7 @@ namespace PrecisionEngineering.Data
 
 				var s = NetManager.instance.m_segments.m_buffer[_segments[i]];
 
-				if (s.Info != netTool.NetInfo)
+				if (!NetUtil.AreSimilarClass(s.Info, netTool.NetInfo))
 					continue;
 
 				var p2 = s.GetClosestPosition(p1);

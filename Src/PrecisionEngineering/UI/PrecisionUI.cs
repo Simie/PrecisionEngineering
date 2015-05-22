@@ -14,6 +14,7 @@ namespace PrecisionEngineering.UI
 
 		private readonly List<MeasurementLabel> _activeAngleLabels = new List<MeasurementLabel>();
 		private readonly List<MeasurementLabel> _angleLabelPool = new List<MeasurementLabel>();
+		private DebugUI _debugUi;
 
 		public PrecisionUI()
 		{
@@ -41,10 +42,10 @@ namespace PrecisionEngineering.UI
 			if (_rootView == null)
 				Load();
 
-			var p = _rootView.AddUIComponent(typeof(DebugUI)) as DebugUI;
+			_debugUi = _rootView.AddUIComponent(typeof(DebugUI)) as DebugUI;
 
-			p.NetTool = netTool;
-			p.Calculator = calc;
+			_debugUi.NetTool = netTool;
+			_debugUi.Calculator = calc;
 
 		}
 
@@ -97,6 +98,13 @@ namespace PrecisionEngineering.UI
 			return _rootView.AddUIComponent(typeof (MeasurementLabel)) as MeasurementLabel;
 
 		}
-		
+
+		public void Update()
+		{
+			
+			if(_debugUi != null) _debugUi.DoUpdate();
+
+		}
+
 	}
 }

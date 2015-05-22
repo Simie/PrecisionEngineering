@@ -68,5 +68,32 @@ namespace PrecisionEngineering.Utilities
 
 		}
 
+		public static Vector2? LineIntersectionPoint(Vector2 ps1, Vector2 pe1, Vector2 ps2,
+			Vector2 pe2)
+		{
+
+			// Get A,B,C of first line - points : ps1 to pe1
+			var a1 = pe1.y - ps1.y;
+			var b1 = ps1.x - pe1.x;
+			var c1 = a1*ps1.x + b1*ps1.y;
+
+			// Get A,B,C of second line - points : ps2 to pe2
+			var a2 = pe2.y - ps2.y;
+			var b2 = ps2.x - pe2.x;
+			var c2 = a2*ps2.x + b2*ps2.y;
+
+			// Get delta and check if the lines are parallel
+			var delta = a1*b2 - a2*b1;
+			if (Mathf.Approximately(delta, 0))
+				return null;
+
+			// now return the Vector2 intersection point
+			return new Vector2(
+				(b2*c1 - b1*c2)/delta,
+				(a1*c2 - a2*c1)/delta
+				);
+
+		}
+
 	}
 }

@@ -1,13 +1,22 @@
-﻿using System.Reflection;
-using ColossalFramework;
-using ColossalFramework.Math;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using ColossalFramework.UI;
+using PrecisionEngineering.Data;
+using PrecisionEngineering.Data.Calculations;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
-namespace PrecisionEngineering
+namespace PrecisionEngineering.Detour
 {
 	internal class SnapController
 	{
+
+		public static bool EnableSnapping;
+		public static bool EnableAdvancedSnapping;
+
+		public static GuideLine? SnappedGuideLine;
+		public static readonly IList<GuideLine> GuideLines = new List<GuideLine>();  
 
 		public static string DebugPrint = "";
 
@@ -43,17 +52,19 @@ namespace PrecisionEngineering
 			_hasControl = false;
 		}
 
-		public static bool EnableSnapping;
-
 		public static NetTool.ControlPoint SnapDirectionOverride(NetTool.ControlPoint newPoint, NetTool.ControlPoint oldPoint,
 			NetInfo info, out bool success, out float minDistanceSq)
 		{
 
 			if (Debug.Enabled) {
 
-				DebugPrint = string.Format("oldPoint: {0}\nnewPoint:{1}", StringUtil.ToString(oldPoint), StringUtil.ToString(newPoint));
+				DebugPrint = string.Format("oldPoint: {0}\nnewPoint:{1}", StringUtil.ToString(oldPoint),
+					StringUtil.ToString(newPoint));
 
 			}
+
+			GuideLines.Clear();
+			SnappedGuideLine = null;
 
 			// Quick bypass if custom snapping is disabled - jump to the original CS implementation
 			if (!EnableSnapping) {
@@ -138,7 +149,7 @@ namespace PrecisionEngineering
 
 				success = true;
 
-			} else if(oldPoint.m_direction.sqrMagnitude > 0.5f) {
+			} else if (oldPoint.m_direction.sqrMagnitude > 0.5f) {
 
 				if (newPoint.m_node == 0 && !newPoint.m_outside) {
 
@@ -163,6 +174,10 @@ namespace PrecisionEngineering
 
 			}
 
+			if (EnableAdvancedSnapping) {
+				controlPoint = SnapDirectionAdvanced(controlPoint, oldPoint, info, ref success, ref minDistanceSq);
+			}
+
 			if (success)
 				return controlPoint;
 
@@ -175,6 +190,44 @@ namespace PrecisionEngineering
 			StealControl();
 
 			return result;
+
+		}
+
+		public static NetTool.ControlPoint SnapDirectionAdvanced(NetTool.ControlPoint newPoint, NetTool.ControlPoint oldPoint,
+			NetInfo info, ref bool success, ref float minDistanceSq)
+		{
+
+			var controlPoint = newPoint;
+
+			Guides.CalculateGuideLines(info, oldPoint, controlPoint, GuideLines);
+
+			if (GuideLines.Count == 0) {
+
+				if(Debug.Enabled)
+					DebugPrint += " (No GuideLines Found)";
+
+				return newPoint;
+			}
+
+			var lines =
+				GuideLines.OrderBy(p => p.Distance)
+				          .ThenBy(p => Vector3.Distance(p.Origin, newPoint.m_position));
+
+			var closestLine = lines.First();
+
+			if (Debug.Enabled) {
+				DebugPrint += " Guide: " + closestLine.Intersect.ToString();
+			}
+
+			controlPoint.m_position = closestLine.Intersect;
+			controlPoint.m_position.y = newPoint.m_position.y;
+			controlPoint.m_direction = oldPoint.m_position.DirectionTo(newPoint.m_position);
+			success = true;
+
+			SnappedGuideLine = closestLine;
+			FakeRoadAI.DisableLengthSnap = true;
+
+			return controlPoint;
 
 		}
 

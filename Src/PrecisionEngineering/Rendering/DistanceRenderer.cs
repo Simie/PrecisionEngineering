@@ -34,7 +34,7 @@ namespace PrecisionEngineering.Rendering
 			var maxHeight = Mathf.Max(distance.StartPosition.y, distance.EndPosition.y);
 
 			renderManager.OverlayEffect.DrawSegment(cameraInfo,
-				distance.Flags == MeasurementFlags.Primary ? Color.green : Color.yellow,
+				distance.Flags == MeasurementFlags.Primary ? Settings.PrimaryColor : Settings.SecondaryColor,
 				new Segment3(distance.StartPosition, distance.EndPosition), Size, 3f,
 				minHeight - 20f,
 				maxHeight + 20f, true, true);

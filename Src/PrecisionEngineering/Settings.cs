@@ -17,5 +17,8 @@ namespace PrecisionEngineering
 		public static Color PrimaryColor = Color.green;
 		public static Color SecondaryColor = Color.yellow;
 
+		public const float GuideLinesVisibilityDistance = 80f;
+		public const float GuideLinesSnapDistance = 5f;
+
 	}
 }
