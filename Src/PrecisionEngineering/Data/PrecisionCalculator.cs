@@ -168,7 +168,7 @@ namespace PrecisionEngineering.Data
 
 				var s = NetManager.instance.m_segments.m_buffer[_segments[i]];
 
-				if (s.Info.m_class.m_service != netTool.NetInfo.m_class.m_service)
+				if (s.Info != netTool.NetInfo)
 					continue;
 
 				var p2 = s.GetClosestPosition(p1);
@@ -177,7 +177,7 @@ namespace PrecisionEngineering.Data
 				if (Vector3.Distance(netTool.ControlPoints[0].m_position, p2) < Settings.MinimumDistanceMeasure)
 					continue;
 
-				var closestPoint = Util.ClosestPointOnLine(p1, p2, netTool.ControlPoints[0].m_position);
+				var closestPoint = Util.ClosestPointOnLineSegment(p1, p2, netTool.ControlPoints[0].m_position);
 
 				// Discard if the line contains the start control point
 				if (Vector3.Distance(closestPoint, netTool.ControlPoints[0].m_position) < Settings.MinimumDistanceMeasure)
