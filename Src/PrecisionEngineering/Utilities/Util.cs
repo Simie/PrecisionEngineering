@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ColossalFramework.Math;
 using UnityEngine;
 
 namespace PrecisionEngineering.Utilities
@@ -36,10 +37,10 @@ namespace PrecisionEngineering.Utilities
 
 			var apDotAb = Vector3.Dot(ap, ab);
 
-			var t = apDotAb / apLength;
+			var t = apDotAb/apLength;
 			t = Mathf.Clamp01(t);
 
-			return a + ab * t;
+			return a + ab*t;
 
 		}
 
@@ -62,9 +63,9 @@ namespace PrecisionEngineering.Utilities
 
 			var apDotAb = Vector3.Dot(ap, ab);
 
-			var t = apDotAb / apLength;
+			var t = apDotAb/apLength;
 
-			return a + ab * t;
+			return a + ab*t;
 
 		}
 

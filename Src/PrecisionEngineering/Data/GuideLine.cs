@@ -45,7 +45,7 @@ namespace PrecisionEngineering.Data
 
 		public override string ToString()
 		{
-			return string.Format("O: {0}, I: {1}, Width: {2}, Distance: {3}", Origin, Intersect, Width, Distance);
+			return string.Format("O: {0}, I: {1}\n\t Width: {2}, Distance: {3}", Origin, Intersect, Width, Distance);
 		}
 
 	}

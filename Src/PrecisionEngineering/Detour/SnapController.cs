@@ -36,7 +36,6 @@ namespace PrecisionEngineering.Detour
 			if (_hasControl)
 				return;
 
-
 			_revertState = RedirectionHelper.RedirectCalls(SnapDirectionOriginalMethodInfo, SnapDirectionOverrideMethodInfo);
 			_hasControl = true;
 
@@ -175,7 +174,13 @@ namespace PrecisionEngineering.Detour
 			}
 
 			if (EnableAdvancedSnapping) {
-				controlPoint = SnapDirectionAdvanced(controlPoint, oldPoint, info, ref success, ref minDistanceSq);
+
+				if (controlPoint.m_segment == 0 && controlPoint.m_node == 0) {
+
+					controlPoint = SnapDirectionGuideLines(controlPoint, oldPoint, info, ref success, ref minDistanceSq);
+
+				}
+
 			}
 
 			if (success)
@@ -193,7 +198,7 @@ namespace PrecisionEngineering.Detour
 
 		}
 
-		public static NetTool.ControlPoint SnapDirectionAdvanced(NetTool.ControlPoint newPoint, NetTool.ControlPoint oldPoint,
+		public static NetTool.ControlPoint SnapDirectionGuideLines(NetTool.ControlPoint newPoint, NetTool.ControlPoint oldPoint,
 			NetInfo info, ref bool success, ref float minDistanceSq)
 		{
 
@@ -215,17 +220,21 @@ namespace PrecisionEngineering.Detour
 
 			var closestLine = lines.First();
 
-			if (Debug.Enabled) {
-				DebugPrint += " Guide: " + closestLine.Intersect.ToString();
+			if (closestLine.Distance <= Settings.GuideLinesSnapDistance + closestLine.Width) {
+
+				if (Debug.Enabled) {
+					DebugPrint += " Guide: " + closestLine.Intersect.ToString();
+				}
+
+				controlPoint.m_position = closestLine.Intersect;
+				controlPoint.m_position.y = newPoint.m_position.y;
+				controlPoint.m_direction = oldPoint.m_position.DirectionTo(newPoint.m_position);
+				success = true;
+
+				SnappedGuideLine = closestLine;
+				FakeRoadAI.DisableLengthSnap = true;
+
 			}
-
-			controlPoint.m_position = closestLine.Intersect;
-			controlPoint.m_position.y = newPoint.m_position.y;
-			controlPoint.m_direction = oldPoint.m_position.DirectionTo(newPoint.m_position);
-			success = true;
-
-			SnappedGuideLine = closestLine;
-			FakeRoadAI.DisableLengthSnap = true;
 
 			return controlPoint;
 
