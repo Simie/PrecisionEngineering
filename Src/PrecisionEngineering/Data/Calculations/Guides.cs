@@ -13,8 +13,8 @@ namespace PrecisionEngineering.Data.Calculations
 	internal static class Guides
 	{
 
-		private static readonly ushort[] SegmentCache = new ushort[32];
-		private static int SegmentCacheCount;
+		private static readonly ushort[] SegmentCache = new ushort[Settings.GuideLineQueryCount];
+		private static int _segmentCacheCount;
 
 		public static void CalculateGuideLines(NetInfo netInfo, NetTool.ControlPoint startPoint, NetTool.ControlPoint endPoint, IList<GuideLine> resultList)
 		{
@@ -22,9 +22,9 @@ namespace PrecisionEngineering.Data.Calculations
 			var startPosition = startPoint.m_position;
 			var endPosition = endPoint.m_position;
 
-			NetManager.instance.GetClosestSegments(endPosition, SegmentCache, out SegmentCacheCount);
+			NetManager.instance.GetClosestSegments(endPosition, SegmentCache, out _segmentCacheCount);
 
-			for (var i = 0; i < SegmentCacheCount; i++) {
+			for (var i = 0; i < _segmentCacheCount; i++) {
 
 				var segmentId = SegmentCache[i];
 

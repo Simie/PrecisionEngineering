@@ -20,5 +20,10 @@ namespace PrecisionEngineering
 		public const float GuideLinesVisibilityDistance = 80f;
 		public const float GuideLinesSnapDistance = 5f;
 
+		/// <summary>
+		/// Number of segments to query for guide-lines. More = better result, slower performance
+		/// </summary>
+		public const int GuideLineQueryCount = 128;
+
 	}
 }

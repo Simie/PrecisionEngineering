@@ -215,8 +215,10 @@ namespace PrecisionEngineering.Detour
 			}
 
 			var lines =
-				GuideLines.OrderBy(p => p.Distance)
-				          .ThenBy(p => Vector3.Distance(p.Origin, newPoint.m_position));
+				GuideLines.OrderBy(p => p.Distance);
+				         // .ThenBy(p => Vector3.Distance(p.Origin, newPoint.m_position));
+			
+
 
 			var closestLine = lines.First();
 
