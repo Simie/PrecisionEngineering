@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using PrecisionEngineering.Data.Calculations;
+using PrecisionEngineering.Detour;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
@@ -34,13 +35,15 @@ namespace PrecisionEngineering.Data
 			Node.CalculateJoinAngles(netTool, _measurements);
 
 			//CalculateNodePositionDistance(netTool, _measurements);
-			CalculateNearbySegments(netTool, _measurements);
+			//CalculateNearbySegments(netTool, _measurements);
 
 			CalculateControlPointDistances(netTool, _measurements);
 			CalculateControlPointAngle(netTool, _measurements);
 
 			CalculateControlPointElevation(netTool, _measurements);
 
+			CalculateGuideLineAngle(netTool, _measurements);
+			CalculateGuideLineDistance(netTool, _measurements);
 		}
 
 		private static void CalculateControlPointDistances(NetToolProxy netTool, ICollection<Measurement> measurements)
@@ -85,40 +88,6 @@ namespace PrecisionEngineering.Data
 
 			measurements.Add(new AngleMeasurement(angle, p2.m_position, angleDirection,
 				MeasurementFlags.Primary | MeasurementFlags.Blueprint));
-
-		}
-
-		/// <summary>
-		/// Calculate the distance between all the proposed nodes
-		/// </summary>
-		/// <param name="netTool"></param>
-		/// <param name="measurements"></param>
-		private static void CalculateNodePositionDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
-		{
-
-			if (netTool.NodePositions.m_size <= 1)
-				return;
-
-			float length = 0;
-
-			var prevNodePosition = netTool.NodePositions[0].m_position;
-			var avg = prevNodePosition;
-
-			for (var i = 1; i < netTool.NodePositions.m_size; i++) {
-
-				var n = netTool.NodePositions[i];
-
-				length += Vector3.Distance(prevNodePosition, n.m_position);
-
-				prevNodePosition = n.m_position;
-				avg += n.m_position;
-
-			}
-
-			var d = new DistanceMeasurement(length, avg*1/netTool.NodePositions.m_size, true, netTool.NodePositions[0].m_position,
-				netTool.NodePositions[netTool.NodePositions.m_size - 1].m_position, MeasurementFlags.Primary | MeasurementFlags.HideOverlay);
-
-			measurements.Add(d);
 
 		}
 
@@ -226,6 +195,45 @@ namespace PrecisionEngineering.Data
 					MeasurementFlags.HideOverlay | MeasurementFlags.Height | flag));
 
 			}
+
+		}
+
+		private static void CalculateGuideLineDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount == 0)
+				return;
+
+			if (!SnapController.SnappedGuideLine.HasValue)
+				return;
+
+			var guideLine = SnapController.SnappedGuideLine.Value;
+
+			var dist = Vector3.Distance(guideLine.Origin.Flatten(), guideLine.Intersect.Flatten());
+			var pos = Vector3Extensions.Average(guideLine.Origin, guideLine.Intersect);
+
+			measurements.Add(new DistanceMeasurement(dist, pos, true, guideLine.Origin, guideLine.Intersect,
+				MeasurementFlags.HideOverlay | MeasurementFlags.Guide));
+
+		}
+		private void CalculateGuideLineAngle(NetToolProxy netTool, IList<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount == 0)
+				return;
+
+			if (!SnapController.SnappedGuideLine.HasValue)
+				return;
+
+			var lastControlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
+			var guideLine = SnapController.SnappedGuideLine.Value;
+
+			var incomingDirection = lastControlPoint.m_direction;
+			var guideDirection = guideLine.Direction;
+
+			var angle = Vector3Extensions.GetSignedAngleBetween(guideDirection.Flatten(), incomingDirection.Flatten(), Vector3.up);
+
+			measurements.Add(new AngleMeasurement(angle, guideLine.Intersect, guideDirection, MeasurementFlags.Guide));
 
 		}
 

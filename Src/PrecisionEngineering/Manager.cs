@@ -166,6 +166,11 @@ namespace PrecisionEngineering
 				return;
 			}
 
+			// Disable guide measurements when advanced snapping is disabled
+			if ((m.Flags & MeasurementFlags.Guide) != 0 && !SnapController.EnableAdvancedSnapping) {
+				return;
+			}
+
 			if (m is AngleMeasurement) {
 				var am = m as AngleMeasurement;
 
