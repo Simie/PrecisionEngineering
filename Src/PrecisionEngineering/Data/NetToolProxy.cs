@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -15,9 +16,15 @@ namespace PrecisionEngineering.Data
 
 		public bool IsEnabled { get { return _target.enabled; } }
 
-		public bool IsSnappingEnabled { get { return _target.m_snap; } }
+	    public bool IsSnappingEnabled
+	    {
+	        get { return (bool) _snapField.GetValue(_target); }
+	        set { _snapField.SetValue(_target, value); }
+	    }
 
-		public NetTool.Mode Mode { get { return _target.m_mode; } }
+	    public NetTool.Mode Mode { get
+	    {
+	        return (NetTool.Mode)_modeField.GetValue(_target); } }
 
 		public ToolBase.ToolErrors BuildErrors
 		{
@@ -32,12 +39,13 @@ namespace PrecisionEngineering.Data
 		}
 		public FastList<NetTool.NodePosition> NodePositions
 		{
-			get { return NetTool.m_nodePositionsMain; }
+			get { return (FastList<NetTool.NodePosition>) _nodePositionsStaticField.GetValue(null); }
 		}
 
 		public NetInfo NetInfo
 		{
-			get { return _target.m_prefab; }
+			get
+			{  return (NetInfo) _netInfoField.GetValue(_target); }
 		}
 
 		public ToolController ToolController
@@ -45,26 +53,48 @@ namespace PrecisionEngineering.Data
 			get { return (ToolController)_toolControllerField.GetValue(_target); }
 		}
 
-		private NetTool _target;
+		private ToolBase _target;
 
 		private readonly FieldInfo _controlPointCountField;
 		private readonly FieldInfo _controlPointsField;
 		private readonly FieldInfo _toolControllerField;
+		private readonly FieldInfo _netInfoField;
+		private readonly FieldInfo _snapField;
+		private readonly FieldInfo _modeField;
 
-		public NetToolProxy(NetTool target)
+		private readonly FieldInfo _nodePositionsStaticField;
+
+		public NetToolProxy(ToolBase target)
 		{
 
 			_target = target;
 
-			_controlPointCountField = GetPrivateField("m_controlPointCount");
-			_controlPointsField = GetPrivateField("m_controlPoints");
-			_toolControllerField = GetPrivateField("m_toolController");
+		    var t = target.GetType();
+
+			_controlPointCountField = GetPrivateField(t, "m_controlPointCount");
+			_controlPointsField = GetPrivateField(t, "m_controlPoints");
+			_toolControllerField = GetPrivateField(t, "m_toolController");
+			_netInfoField = GetPublicField(t, "m_prefab");
+			_snapField = GetPublicField(t, "m_snap");
+			_modeField = GetPublicField(t, "m_mode");
+
+		    _nodePositionsStaticField = t.GetField("m_nodePositionsMain", BindingFlags.Static | BindingFlags.Public);
 
 		}
 
-		private static FieldInfo GetPrivateField(string name)
+		private static FieldInfo GetPrivateField(Type t, string name)
 		{
-			var f = typeof (NetTool).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
+			var f = t.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
+
+			if(f == null)
+				Debug.LogError(string.Format("Error getting field: {0}", name));
+
+			return f;
+		}
+
+		private static FieldInfo GetPublicField(Type t, string name)
+		{
+			var f = t.GetField(name, BindingFlags.Public | BindingFlags.Instance);
 
 			if(f == null)
 				Debug.LogError(string.Format("Error getting field: {0}", name));
