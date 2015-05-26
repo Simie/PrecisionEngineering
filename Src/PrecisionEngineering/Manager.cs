@@ -48,8 +48,6 @@ namespace PrecisionEngineering
 			get { return _isLoaded && _netToolProxy != null && _netToolProxy.IsValid; }
 		}
 
-
-		private NetTool _netTool;
 		private NetToolProxy _netToolProxy;
 
 		private PrecisionCalculator _calculator;
@@ -80,7 +78,6 @@ namespace PrecisionEngineering
 			Debug.Log("Manager Unload");
 
 			_netToolProxy = null;
-			_netTool = null;
 
 			_isLoaded = false;
 
@@ -98,6 +95,7 @@ namespace PrecisionEngineering
 				if (_netToolProxy != null) {
 
 					Settings.BlueprintColor = _netToolProxy.ToolController.m_validColor;
+					_ui.NetToolProxy = _netToolProxy;
 
 				}
 
@@ -149,9 +147,13 @@ namespace PrecisionEngineering
 			if (SnapController.SnappedGuideLine.HasValue)
 				Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
 
-			_ui.Update();
+			try {
+				_ui.Update();
+			} catch (Exception e) {
+				Debug.LogError("Error during UI Update");
+				Debug.LogError(e.ToString());
+			}
 
-			FakeRoadAI.DisableLengthSnap = false;
 			SnapController.SnappedGuideLine = null;
 			SnapController.GuideLines.Clear();
 

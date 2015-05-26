@@ -54,7 +54,7 @@ namespace PrecisionEngineering.Data
 				var p1 = netTool.ControlPoints[i - 1].m_position;
 				var p2 = netTool.ControlPoints[i].m_position;
 
-				var dist = Vector3.Distance(p1, p2);
+				var dist = Vector3.Distance(p1.Flatten(), p2.Flatten());
 				var pos = Vector3Extensions.Average(p1, p2);
 
 				measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, MeasurementFlags.HideOverlay));

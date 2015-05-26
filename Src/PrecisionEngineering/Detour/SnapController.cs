@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using ColossalFramework.UI;
 using PrecisionEngineering.Data;
 using PrecisionEngineering.Data.Calculations;
@@ -15,17 +16,32 @@ namespace PrecisionEngineering.Detour
 		public static bool EnableSnapping;
 		public static bool EnableAdvancedSnapping;
 
+		/// <summary>
+		/// The GuideLine object snapped to
+		/// </summary>
 		public static GuideLine? SnappedGuideLine;
-		public static readonly IList<GuideLine> GuideLines = new List<GuideLine>();  
+
+		/// <summary>
+		/// List of the GuideLine objects generated during the last SnapDirection call
+		/// </summary>
+		public static readonly IList<GuideLine> GuideLines = new List<GuideLine>();
+
+		/// <summary>
+		/// Control point that was last used for generating guide lines.
+		/// </summary>
+		private static NetTool.ControlPoint _cachedGuideLineControlPoint;
 
 		public static string DebugPrint = "";
 
 		private static readonly MethodInfo SnapDirectionOriginalMethodInfo = typeof (NetTool).GetMethod("SnapDirection");
+		private static readonly MethodInfo SnapOriginalMethodInfo = typeof (NetTool).GetMethod("Snap", BindingFlags.NonPublic | BindingFlags.Instance);
 
 		private static readonly MethodInfo SnapDirectionOverrideMethodInfo =
 			typeof (SnapController).GetMethod("SnapDirectionOverride");
+		private static readonly MethodInfo SnapOverrideMethodInfo = typeof (SnapController).GetMethod("SnapOverride", BindingFlags.NonPublic | BindingFlags.Static);
 
-		private static RedirectCallsState _revertState;
+		private static RedirectCallsState _snapDirectionRevertState;
+		private static RedirectCallsState _snapRevertState;
 		private static bool _hasControl;
 
 		static SnapController() {}
@@ -36,7 +52,9 @@ namespace PrecisionEngineering.Detour
 			if (_hasControl)
 				return;
 
-			_revertState = RedirectionHelper.RedirectCalls(SnapDirectionOriginalMethodInfo, SnapDirectionOverrideMethodInfo);
+			_snapDirectionRevertState = RedirectionHelper.RedirectCalls(SnapDirectionOriginalMethodInfo, SnapDirectionOverrideMethodInfo);
+			_snapRevertState = RedirectionHelper.RedirectCalls(SnapOriginalMethodInfo, SnapOverrideMethodInfo);
+
 			_hasControl = true;
 
 		}
@@ -47,8 +65,11 @@ namespace PrecisionEngineering.Detour
 			if (!_hasControl)
 				return;
 
-			RedirectionHelper.RevertRedirect(SnapDirectionOriginalMethodInfo, _revertState);
+			RedirectionHelper.RevertRedirect(SnapDirectionOriginalMethodInfo, _snapDirectionRevertState);
+			RedirectionHelper.RevertRedirect(SnapOriginalMethodInfo, _snapRevertState);
+
 			_hasControl = false;
+
 		}
 
 		public static NetTool.ControlPoint SnapDirectionOverride(NetTool.ControlPoint newPoint, NetTool.ControlPoint oldPoint,
@@ -204,25 +225,45 @@ namespace PrecisionEngineering.Detour
 
 			var controlPoint = newPoint;
 
-			Guides.CalculateGuideLines(info, oldPoint, controlPoint, GuideLines);
+			//if (controlPoint.m_position != _cachedGuideLineControlPoint.m_position) {
+
+				Guides.CalculateGuideLines(info, oldPoint, controlPoint, GuideLines);
+
+			//}
+
+			_cachedGuideLineControlPoint = controlPoint;
 
 			if (GuideLines.Count == 0) {
 
-				if(Debug.Enabled)
+				if (Debug.Enabled)
 					DebugPrint += " (No GuideLines Found)";
 
 				return newPoint;
+
 			}
 
-			var lines =
-				GuideLines.OrderBy(p => p.Distance);
-				         // .ThenBy(p => Vector3.Distance(p.Origin, newPoint.m_position));
-			
+			var minDist = float.MaxValue;
+			var closestLine = GuideLines[0];
 
+			if (GuideLines.Count > 1) {
 
-			var closestLine = lines.First();
+				for (var i = 0; i < GuideLines.Count; i++) {
+
+					var gl = GuideLines[i];
+					var dist = Vector3Extensions.DistanceSquared(gl.Origin, newPoint.m_position) + gl.Distance*gl.Distance;
+
+					if (dist < minDist) {
+						closestLine = gl;
+						minDist = dist;
+					}
+
+				}
+
+			}
 
 			if (closestLine.Distance <= Settings.GuideLinesSnapDistance + closestLine.Width) {
+
+				minDistanceSq = closestLine.Distance*closestLine.Distance;
 
 				if (Debug.Enabled) {
 					DebugPrint += " Guide: " + closestLine.Intersect.ToString();
@@ -234,7 +275,6 @@ namespace PrecisionEngineering.Detour
 				success = true;
 
 				SnappedGuideLine = closestLine;
-				FakeRoadAI.DisableLengthSnap = true;
 
 			}
 
@@ -242,5 +282,31 @@ namespace PrecisionEngineering.Detour
 
 		}
 
-	}
+		private static void SnapOverride(NetTool tool, NetInfo info, ref Vector3 point, ref Vector3 direction, Vector3 refPoint,
+			float refAngle)
+		{
+
+			//Debug.Log("snap override");
+
+			if (FakeRoadAI.DisableLengthSnap == true)
+				return;
+
+			// Original method from dotPeek
+
+			direction = new Vector3(Mathf.Cos(refAngle), 0.0f, Mathf.Sin(refAngle));
+			Vector3 vector3_1 = direction * 8f;
+			Vector3 vector3_2 = new Vector3(vector3_1.z, 0.0f, -vector3_1.x);
+			if ((double)info.m_halfWidth <= 4.0) {
+				refPoint.x += (float)((double)vector3_1.x * 0.5 + (double)vector3_2.x * 0.5);
+				refPoint.z += (float)((double)vector3_1.z * 0.5 + (double)vector3_2.z * 0.5);
+			}
+			Vector2 vector2 = new Vector2(point.x - refPoint.x, point.z - refPoint.z);
+			float num1 = Mathf.Round((float)(((double)vector2.x * (double)vector3_1.x + (double)vector2.y * (double)vector3_1.z) * (1.0 / 64.0)));
+			float num2 = Mathf.Round((float)(((double)vector2.x * (double)vector3_2.x + (double)vector2.y * (double)vector3_2.z) * (1.0 / 64.0)));
+			point.x = (float)((double)refPoint.x + (double)num1 * (double)vector3_1.x + (double)num2 * (double)vector3_2.x);
+			point.z = (float)((double)refPoint.z + (double)num1 * (double)vector3_1.z + (double)num2 * (double)vector3_2.z);
+
+		}
+
+    }
 }

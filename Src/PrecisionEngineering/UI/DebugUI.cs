@@ -10,13 +10,14 @@ using UnityEngine;
 
 namespace PrecisionEngineering.UI
 {
-	class DebugUI : UIPanel
+	internal class DebugUI : UIPanel
 	{
 
 		public NetToolProxy NetTool;
 		public PrecisionCalculator Calculator;
 
 		private UILabel _label;
+		private bool _hasStarted = false;
 
 		public override void Start()
 		{
@@ -35,18 +36,36 @@ namespace PrecisionEngineering.UI
 			_label.maximumSize = new Vector2(width - 20, height - 20);
 			_label.padding = new RectOffset(10, 10, 10, 10);
 
+			_hasStarted = true;
+
 		}
 
 		public void DoUpdate()
 		{
+
+			if (!_hasStarted)
+				return;
+
+			if (NetTool == null) {
+				_label.text = "NetTool not set";
+				return;
+			}
+
+			if (Calculator == null) {
+				_label.text = "Calculator not set";
+				return;
+			}
 
 			var txt = new StringBuilder();
 
 			txt.AppendLine(string.Format("SnapController:\n{0}", SnapController.DebugPrint));
 			SnapController.DebugPrint = "";
 
+			txt.AppendLine(string.Format("Disable Snapping: {0}", FakeRoadAI.DisableLengthSnap));
+
 			txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
 			txt.AppendLine(string.Format(", Node Count: {0}", NetTool.NodePositions.m_size));
+
 
 			txt.AppendLine("Control Points: ");
 
@@ -58,6 +77,7 @@ namespace PrecisionEngineering.UI
 			}
 
 			txt.AppendLine();
+
 			txt.AppendLine("Nodes: ");
 
 			for (var i = 0; i < NetTool.NodePositions.m_size; i++) {
@@ -79,12 +99,13 @@ namespace PrecisionEngineering.UI
 
 			}
 			txt.AppendLine("-----------------");
-			txt.AppendLine("Guide Lines: ");
+			txt.Append("Guide Lines: ");
+			txt.AppendLine(string.Format("({0})", SnapController.GuideLines.Count));
 
 			if (SnapController.GuideLines.Count == 0)
 				txt.AppendLine("No GuideLines Available");
 
-			for (var i = 0; i < SnapController.GuideLines.Count; i++) {
+			for (var i = 0; i < Mathf.Min(10, SnapController.GuideLines.Count); i++) {
 
 				txt.AppendLine(SnapController.GuideLines[i].ToString());
 

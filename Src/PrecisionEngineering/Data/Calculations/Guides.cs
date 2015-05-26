@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ColossalFramework;
 using ColossalFramework.Math;
+using PrecisionEngineering.Detour;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
 
@@ -16,53 +17,69 @@ namespace PrecisionEngineering.Data.Calculations
 		private static readonly ushort[] SegmentCache = new ushort[Settings.GuideLineQueryCount];
 		private static int _segmentCacheCount;
 
-		public static void CalculateGuideLines(NetInfo netInfo, NetTool.ControlPoint startPoint, NetTool.ControlPoint endPoint, IList<GuideLine> resultList)
+		public static void CalculateGuideLines(NetInfo netInfo, NetTool.ControlPoint startPoint, NetTool.ControlPoint endPoint,
+			IList<GuideLine> resultList)
 		{
 
-			var startPosition = startPoint.m_position;
-			var endPosition = endPoint.m_position;
+			lock (SegmentCache) {
 
-			NetManager.instance.GetClosestSegments(endPosition, SegmentCache, out _segmentCacheCount);
+				var startPosition = startPoint.m_position;
+				var endPosition = endPoint.m_position;
 
-			for (var i = 0; i < _segmentCacheCount; i++) {
+				//var segments = NetManager.instance.m_segments;
+				//NetManager.instance.GetClosestSegments(endPosition, SegmentCache, out _segmentCacheCount);
 
-				var segmentId = SegmentCache[i];
+				GetClosestSegments(netInfo, endPosition, SegmentCache, out _segmentCacheCount);
+				SnapController.DebugPrint = string.Format("Closest Segment Count: {0}", _segmentCacheCount);
 
-				var s = NetManager.instance.m_segments.m_buffer[segmentId];
+				var c = _segmentCacheCount;
+				for (ushort i = 0; i < c; i++) {
 
-				// Ensure they are part of the same network
-				if (!NetUtil.AreSimilarClass(s.Info, netInfo))
-					continue;
+					var segmentId = SegmentCache[i];
 
-				// Test the start and end of the segment
+					var s = NetManager.instance.m_segments.m_buffer[segmentId];
 
-				// Check if the node can branch in the guide direction (angles less than 45deg or so should be discarded)
-				if (CanNodeBranchInDirection(s.m_endNode, s.m_startDirection)) {
+					// Ensure they are part of the same network
+					if (!NetUtil.AreSimilarClass(s.Info, netInfo))
+						continue;
 
-					var endNode = NetManager.instance.m_nodes.m_buffer[s.m_endNode];
+					if (
+						Vector3Extensions.DistanceSquared(NetManager.instance.m_nodes.m_buffer[s.m_startNode].m_position, endPosition) >
+						Settings.MaxGuideLineQueryDistanceSqr)
+						continue;
 
-					TestLine(s.Info, startPosition, endPosition,
-						endNode.m_position,
-						endNode.m_position + s.m_startDirection.Flatten(),
-						resultList, segmentId, s.m_endNode);
+					// Test the start and end of the segment
 
+					// Check if the node can branch in the guide direction (angles less than 45deg or so should be discarded)
+					if (CanNodeBranchInDirection(s.m_endNode, s.m_startDirection)) {
+
+						var endNode = NetManager.instance.m_nodes.m_buffer[s.m_endNode];
+
+						TestLine(s.Info, startPosition, endPosition,
+							endNode.m_position,
+							endNode.m_position + s.m_startDirection.Flatten(),
+							resultList, segmentId, s.m_endNode);
+
+					}
+
+					if (CanNodeBranchInDirection(s.m_startNode, s.m_endDirection)) {
+
+						var startNode = NetManager.instance.m_nodes.m_buffer[s.m_startNode];
+
+						TestLine(s.Info, startPosition, endPosition,
+							startNode.m_position,
+							startNode.m_position + s.m_endDirection.Flatten(),
+							resultList, segmentId, s.m_startNode);
+
+					}
 				}
 
-				if (CanNodeBranchInDirection(s.m_startNode, s.m_endDirection)) {
-
-					var startNode = NetManager.instance.m_nodes.m_buffer[s.m_startNode];
-
-					TestLine(s.Info, startPosition, endPosition,
-						startNode.m_position,
-						startNode.m_position + s.m_endDirection.Flatten(),
-						resultList, segmentId, s.m_startNode);
-
-				}
 			}
 
 		}
 
-		private static void TestLine(NetInfo netInfo, Vector3 startPoint, Vector3 endPoint, Vector3 l1, Vector3 l2, IList<GuideLine> lines, ushort segmentId = 0, ushort nodeId = 0)
+		private static void TestLine(NetInfo netInfo, Vector3 startPoint, Vector3 endPoint, Vector3 l1, Vector3 l2,
+			IList<GuideLine> lines, ushort segmentId = 0, ushort nodeId = 0)
 		{
 
 			var p = Util.LineIntersectionPoint(startPoint.xz(), endPoint.xz(), l1.xz(), l2.xz());
@@ -73,6 +90,12 @@ namespace PrecisionEngineering.Data.Calculations
 
 			var intersect = new Vector3(p.Value.x, 0, p.Value.y);
 
+			var intersectDistanceSqr = Vector3Extensions.DistanceSquared(intersect, endPoint.Flatten());
+
+			// Discard if intersect is silly distance away
+			if (intersectDistanceSqr > Settings.MaxGuideLineQueryDistanceSqr)
+				return;
+
 			var guideDirection = l1.Flatten().DirectionTo(l2.Flatten());
 			var intersectDirection = l1.Flatten().DirectionTo(intersect);
 
@@ -82,9 +105,9 @@ namespace PrecisionEngineering.Data.Calculations
 
 			intersect.y = TerrainManager.instance.SampleRawHeightSmooth(intersect);
 
-			var intersectDistance = Vector3.Distance(endPoint, intersect);
+			var intersectDistance = Mathf.Sqrt(intersectDistanceSqr);
 
-			var line = new GuideLine(l1, intersect, netInfo.m_halfWidth * 2f, intersectDistance);
+			var line = new GuideLine(l1, intersect, netInfo.m_halfWidth*2f, intersectDistance);
 
 			int index;
 
@@ -115,9 +138,12 @@ namespace PrecisionEngineering.Data.Calculations
 
 		public static bool IsDuplicate(IList<GuideLine> existingLines, GuideLine newLine, out int index)
 		{
+			index = -1;
+			return false;
+			var l = existingLines.Count;
 
 			// Discard if an existing line has the same direction and origin
-			for (var i = 0; i < existingLines.Count; i++) {
+			for (var i = 0; i < l; i++) {
 
 				var existingLine = existingLines[i];
 
@@ -136,11 +162,11 @@ namespace PrecisionEngineering.Data.Calculations
 
 		}
 
-		private static bool CanNodeBranchInDirection( ushort nodeId, Vector3 direction)
+		private static bool CanNodeBranchInDirection(ushort nodeId, Vector3 direction)
 		{
 
 			var closestSegmentId = NetNodeUtility.GetClosestSegmentId(nodeId, direction);
-			
+
 			var exitDirection = NetNodeUtility.GetSegmentExitDirection(nodeId, closestSegmentId);
 
 			var exitAngle = Vector3Extensions.GetSignedAngleBetween(direction.Flatten(), exitDirection.Flatten(), Vector3.up);
@@ -149,5 +175,73 @@ namespace PrecisionEngineering.Data.Calculations
 
 		}
 
+		private static void GetClosestSegments(NetInfo netInfo, Vector3 pos, ushort[] segments, out int count)
+		{
+
+			var nm = NetManager.instance;
+
+			count = 0;
+			float searchRange = 32f;
+
+			for (int i = 0; i < 5; ++i) {
+				float xMin = pos.x - searchRange;
+				float zMin = pos.z - searchRange;
+				float xMax = pos.x + searchRange;
+				float zMax = pos.z + searchRange;
+
+				int xTileMin = Mathf.Max((int) ((xMin - 64.0)/64.0 + 135.0), 0);
+				int zTileMin = Mathf.Max((int) ((zMin - 64.0)/64.0 + 135.0), 0);
+				int xTileMax = Mathf.Min((int) ((xMax + 64.0)/64.0 + 135.0), 269);
+				int zTileMax = Mathf.Min((int) ((zMax + 64.0)/64.0 + 135.0), 269);
+
+				for (int zTile = zTileMin; zTile <= zTileMax; ++zTile) {
+					for (int xTile = xTileMin; xTile <= xTileMax; ++xTile) {
+						ushort segmentId = nm.m_segmentGrid[zTile*270 + xTile];
+						int num11 = 0;
+						while (segmentId != 0) {
+							ushort startNodeId = nm.m_segments.m_buffer[segmentId].m_startNode;
+							ushort endNodeId = nm.m_segments.m_buffer[segmentId].m_endNode;
+							Vector3 startPosition = nm.m_nodes.m_buffer[startNodeId].m_position;
+							Vector3 endPosition = nm.m_nodes.m_buffer[endNodeId].m_position;
+							if (NetUtil.AreSimilarClass(nm.m_segments.m_buffer[segmentId].Info, netInfo) && (
+								(Mathf.Max(Mathf.Max(xMin - 64f - startPosition.x, zMin - 64f - startPosition.z),
+									Mathf.Max((float) (startPosition.x - (double) xMax - 64.0),
+										(float) (startPosition.z - (double) zMax - 64.0))) < 0.0 ||
+								 Mathf.Max(Mathf.Max(xMin - 64f - endPosition.x, zMin - 64f - endPosition.z),
+									 Mathf.Max((float) (endPosition.x - (double) xMax - 64.0),
+										 (float) (endPosition.z - (double) zMax - 64.0))) < 0.0) &&
+								(Mathf.Min(startPosition.x, endPosition.x) <= (double) xMax &&
+								 Mathf.Min(startPosition.z, endPosition.z) <= (double) zMax) &&
+								(Mathf.Max(startPosition.x, endPosition.x) >= (double) xMin &&
+								 Mathf.Max(startPosition.z, endPosition.z) >= (double) zMin))) {
+								bool isNew = true;
+								for (int j = 0; j < count; ++j) {
+									if (segments[j] == segmentId) {
+										isNew = false;
+										break;
+									}
+								}
+								if (isNew) {
+
+									segments[count++] = segmentId;
+
+									if (count == segments.Length)
+										return;
+
+								}
+							}
+							segmentId = nm.m_segments.m_buffer[segmentId].m_nextGridSegment;
+
+							if (++num11 >= 32768) {
+								CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
+								break;
+							}
+
+						}
+					}
+				}
+				searchRange *= 2f;
+			}
+		}
 	}
 }

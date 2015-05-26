@@ -23,7 +23,10 @@ namespace PrecisionEngineering
 		/// <summary>
 		/// Number of segments to query for guide-lines. More = better result, slower performance
 		/// </summary>
-		public const int GuideLineQueryCount = 128;
+		public const int GuideLineQueryCount = 512;
+
+		public const int MaxGuideLineQueryDistance = 1024;
+		public const int MaxGuideLineQueryDistanceSqr = MaxGuideLineQueryDistance * MaxGuideLineQueryDistance;
 
 	}
 }

@@ -32,20 +32,17 @@ namespace PrecisionEngineering.UI
 			_angleLabelPool.Clear();
 
 			if (Debug.Enabled)
-				CreateDebugUI(NetToolProxy, Calculator);
+				CreateDebugUI();
 
 		}
 
-		public void CreateDebugUI(NetToolProxy netTool, PrecisionCalculator calc)
+		public void CreateDebugUI()
 		{
 
 			if (_rootView == null)
 				Load();
 
 			_debugUi = _rootView.AddUIComponent(typeof(DebugUI)) as DebugUI;
-
-			_debugUi.NetTool = netTool;
-			_debugUi.Calculator = calc;
 
 		}
 
@@ -101,8 +98,12 @@ namespace PrecisionEngineering.UI
 
 		public void Update()
 		{
-			
-			if(_debugUi != null) _debugUi.DoUpdate();
+
+			if (_debugUi != null) {
+				_debugUi.Calculator = Calculator;
+				_debugUi.NetTool = NetToolProxy;
+				_debugUi.DoUpdate();
+			}
 
 		}
 

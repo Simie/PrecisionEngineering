@@ -120,7 +120,7 @@ namespace PrecisionEngineering.Data.Calculations
 			}
 
 			// When both angles are 180, only show the one on the right.
-			if (Mathf.Approximately(180f, nearestLeftAngle) && Mathf.Approximately(180f, nearestRightAngle)) {
+			if (Math.Abs(nearestLeftAngle - 180f) < 0.25f && Math.Abs(nearestRightAngle - 180f) < 0.25f) {
 
 				measurements.Add(new AngleMeasurement(nearestRightAngle, node.m_position, nearestRightNormal,
 					MeasurementFlags.Primary));

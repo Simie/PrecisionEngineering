@@ -64,14 +64,35 @@ namespace PrecisionEngineering.Data
 
 		private readonly FieldInfo _nodePositionsStaticField;
 
-		public NetToolProxy(ToolBase target)
+	    public static NetToolProxy Create(ToolBase target)
+	    {
+
+	        NetToolProxy p;
+
+	        try {
+
+	            p = new NetToolProxy(target);
+	            return p;
+
+	        } catch (Exception e) {
+	            
+                Debug.LogError(string.Format("Error acquiring NetToolProxy from object {0}", target));
+                Debug.LogError(e.ToString());
+                
+	        }
+
+	        return null;
+
+	    }
+
+		private NetToolProxy(ToolBase target)
 		{
 
 			_target = target;
 
 		    var t = target.GetType();
 
-			_controlPointCountField = GetPrivateField(t, "m_controlPointCount");
+            _controlPointCountField = GetPrivateField(t, "m_controlPointCount");
 			_controlPointsField = GetPrivateField(t, "m_controlPoints");
 			_toolControllerField = GetPrivateField(t, "m_toolController");
 			_netInfoField = GetPublicField(t, "m_prefab");
@@ -80,6 +101,10 @@ namespace PrecisionEngineering.Data
 
 		    _nodePositionsStaticField = t.GetField("m_nodePositionsMain", BindingFlags.Static | BindingFlags.Public);
 
+		    if (_nodePositionsStaticField == null) {
+		        throw new Exception(string.Format("Error getting node positions static field on type {0}", t));
+		    }
+
 		}
 
 		private static FieldInfo GetPrivateField(Type t, string name)
@@ -87,7 +112,7 @@ namespace PrecisionEngineering.Data
 			var f = t.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
 
 			if(f == null)
-				Debug.LogError(string.Format("Error getting field: {0}", name));
+                throw new Exception(string.Format("Error getting private field: {0} on type {1}", name, t));
 
 			return f;
 		}
@@ -97,9 +122,9 @@ namespace PrecisionEngineering.Data
 			var f = t.GetField(name, BindingFlags.Public | BindingFlags.Instance);
 
 			if(f == null)
-				Debug.LogError(string.Format("Error getting field: {0}", name));
+                throw new Exception(string.Format("Error getting public field: {0} on type {1}", name, t));
 
-			return f;
+            return f;
 		}
 
 	}
