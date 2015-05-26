@@ -48,7 +48,7 @@ namespace PrecisionEngineering
 			get { return _isLoaded && _netToolProxy != null && _netToolProxy.IsValid; }
 		}
 
-	
+
 		private NetTool _netTool;
 		private NetToolProxy _netToolProxy;
 
@@ -93,14 +93,10 @@ namespace PrecisionEngineering
 
 				Debug.Log("Loading NetTool");
 
-				_netTool = FindObjectOfType<NetTool>();
+				_netToolProxy = NetToolLocator.Locate();
 
-				Debug.Log("NetTool: " + _netTool);
+				if (_netToolProxy != null) {
 
-				if (_netTool != null) {
-
-					_netToolProxy = new NetToolProxy(_netTool);
-					_ui.NetToolProxy = _netToolProxy;
 					Settings.BlueprintColor = _netToolProxy.ToolController.m_validColor;
 
 				}
@@ -121,12 +117,14 @@ namespace PrecisionEngineering
 			/*_secondaryDetailEnabled = (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
 				? !_secondaryDetailEnabled
 				: _secondaryDetailEnabled;*/
-			
+
 			// Activate with shift
 			_secondaryDetailEnabled = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			SnapController.EnableAdvancedSnapping = _secondaryDetailEnabled;
+
+			FakeRoadAI.DisableLengthSnap = SnapController.EnableSnapping && SnapController.EnableAdvancedSnapping;
 
 			_calculator.Update(_netToolProxy);
 
@@ -148,11 +146,11 @@ namespace PrecisionEngineering
 
 			}
 
-			if(SnapController.SnappedGuideLine.HasValue)
+			if (SnapController.SnappedGuideLine.HasValue)
 				Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
 
 			_ui.Update();
-			
+
 			FakeRoadAI.DisableLengthSnap = false;
 			SnapController.SnappedGuideLine = null;
 			SnapController.GuideLines.Clear();
@@ -220,6 +218,7 @@ namespace PrecisionEngineering
 			Debug.LogError("Measurement has no renderer: " + m.ToString());
 
 		}
+
 	}
 
 }
