@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 
 namespace PrecisionEngineering.Data
 {
@@ -39,7 +40,7 @@ namespace PrecisionEngineering.Data
 		}
 		public FastList<NetTool.NodePosition> NodePositions
 		{
-			get { return (FastList<NetTool.NodePosition>) _nodePositionsStaticField.GetValue(null); }
+			get { return NetTool.m_nodePositionsMain; }
 		}
 
 		public NetInfo NetInfo
@@ -61,8 +62,6 @@ namespace PrecisionEngineering.Data
 		private readonly FieldInfo _netInfoField;
 		private readonly FieldInfo _snapField;
 		private readonly FieldInfo _modeField;
-
-		private readonly FieldInfo _nodePositionsStaticField;
 
 	    public static NetToolProxy Create(ToolBase target)
 	    {
@@ -98,12 +97,6 @@ namespace PrecisionEngineering.Data
 			_netInfoField = GetPublicField(t, "m_prefab");
 			_snapField = GetPublicField(t, "m_snap");
 			_modeField = GetPublicField(t, "m_mode");
-
-		    _nodePositionsStaticField = t.GetField("m_nodePositionsMain", BindingFlags.Static | BindingFlags.Public);
-
-		    if (_nodePositionsStaticField == null) {
-		        throw new Exception(string.Format("Error getting node positions static field on type {0}", t));
-		    }
 
 		}
 
