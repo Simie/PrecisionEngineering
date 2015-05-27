@@ -189,6 +189,28 @@ namespace PrecisionEngineering.Detour
 
 					}
 
+				} else if (oldPoint.m_segment == 0 && oldPoint.m_node == 0 && newPoint.m_segment == 0 && oldPoint.m_segment == 0) {
+
+					// Snap to angles based from north
+
+					var userLineDirection = (newPoint.m_position - oldPoint.m_position).Flatten();
+					var userLineLength = userLineDirection.magnitude;
+					userLineDirection.Normalize();
+
+					var snapDirection = Vector3.forward;
+
+					var currentAngle = Vector3Extensions.Angle(snapDirection, userLineDirection, Vector3.up);
+
+					var snappedAngle = Mathf.Round(currentAngle / Settings.SnapAngle) * Settings.SnapAngle;
+					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up) * snapDirection;
+
+					controlPoint.m_direction = snappedDirection.normalized;
+					controlPoint.m_position = oldPoint.m_position + userLineLength * controlPoint.m_direction;
+					controlPoint.m_position.y = newPoint.m_position.y;
+
+					minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
+					success = true;
+
 				}
 
 			} else {
