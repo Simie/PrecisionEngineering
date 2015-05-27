@@ -1,16 +1,19 @@
-Precision Engineering adds angle and distance measurement to Cities: Skylines. 
-
-[b]Compatible with 1.1.0[/b]
+Precision Engineering augments Cities: Skylines by adding angle snapping, guidelines and additional information to assist you when building roads, train lines, pipes and power lines.
 
 [h1]Key Features[/h1]
 
-- Adds angle and distance measurements when building roads or train lines. 
-- Hold CTRL to enable snapping to angles (in 5 degree increments) 
-- Hold SHIFT to enable additional information display 
+- Adds angle and distance measurements when building roads, train lines, pipes and power lines.
+- Hold CTRL to enable snapping to angles (in 5 degree increments).
+- Hold SHIFT to enable additional information display.
+- [b](NEW)[/b] Hold ALT to enable snapping to guidelines.
+- Display height of the road you are placing relative to ground level
+- Display height difference between start and end point of a road (when placing, holding SHIFT)
 - Does not override the default NetTool, so should be compatible with most other mods. 
 
-
-This is very much a beta release, I haven't done much testing yet. Let me know if you encounter any problems! 
-
+[b]Can be safely removed at any time.[/b] Does not modify your save game file or need to be active when loading a save that previously used this mod.
 
 Source code available [url=https://github.com/Simie/PrecisionEngineering]here[/url].
+
+If you like this mod and want to buy me a beer, you can [url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z5JNJHA6DR5V4]donate here[/url].
+
+If you like this mod and want to see more of my work (primarily Unity3D tools at the moment), check out [url=https://www.stompyrobot.uk]Stompy Robot[/url].
