@@ -26,6 +26,7 @@ namespace PrecisionEngineering
 
             SnapController.StealControl();
 			FakeRoadAI.Deploy();
+			AltKeyFix.Deploy();
 
 		}
 
@@ -36,6 +37,7 @@ namespace PrecisionEngineering
 
 			SnapController.ReturnControl();
 			FakeRoadAI.Revert();
+			AltKeyFix.Revert();
 
             Manager.OnLevelUnloaded();
 

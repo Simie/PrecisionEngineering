@@ -64,6 +64,7 @@
     <Compile Include="Data\NetToolLocator.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Data\Measurement.cs" />
+    <Compile Include="Detour\AltKeyFix.cs" />
     <Compile Include="Detour\FakeRoadAI.cs" />
     <Compile Include="Rendering\DistanceRenderer.cs" />
     <Compile Include="Rendering\GuideLineRenderer.cs" />
