@@ -35,14 +35,14 @@ namespace PrecisionEngineering.UI
 			backgroundSprite = "CursorInfoBack";
 			autoSize = true;
 			padding = new RectOffset(5, 5, 5, 5);
-			textScale = 0.6f;
+			textScale = 0.65f;
 			textAlignment = UIHorizontalAlignment.Center;
 			verticalAlignment = UIVerticalAlignment.Middle;
 			zOrder = 100;
 
 			pivot = UIPivotPoint.MiddleCenter;
 
-			color = new Color32(255, 255, 255, 180);
+			color = new Color32(255, 255, 255, 190);
 			processMarkup = true;
 
 			isInteractive = false;
