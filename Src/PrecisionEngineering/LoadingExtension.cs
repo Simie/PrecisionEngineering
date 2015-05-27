@@ -24,7 +24,7 @@ namespace PrecisionEngineering
 
 			Debug.Log("Detouring NetTool.SnapDirection()...");
 
-            SnapController.StealControl();
+			SnapController.StealControl();
 			FakeRoadAI.Deploy();
 			AltKeyFix.Deploy();
 
@@ -39,7 +39,7 @@ namespace PrecisionEngineering
 			FakeRoadAI.Revert();
 			AltKeyFix.Revert();
 
-            Manager.OnLevelUnloaded();
+			Manager.OnLevelUnloaded();
 
 			base.OnLevelUnloading();
 
