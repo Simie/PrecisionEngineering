@@ -10,7 +10,7 @@ namespace PrecisionEngineering
 	static class Debug
 	{
 
-		public const bool Enabled = false;
+		public const bool Enabled = true;
 
 		private const string Prefix = "[PrecisionEngineering] ";
 

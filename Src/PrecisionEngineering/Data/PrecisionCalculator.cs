@@ -33,6 +33,8 @@ namespace PrecisionEngineering.Data
 			Segment.CalculateJoinAngles(netTool, _measurements);
 			Node.CalculateBranchAngles(netTool, _measurements);
 			Node.CalculateJoinAngles(netTool, _measurements);
+			Guides.CalculateGuideLineAngle(netTool, _measurements);
+			Guides.CalculateGuideLineDistance(netTool, _measurements);
 
 			//CalculateNodePositionDistance(netTool, _measurements);
 			//CalculateNearbySegments(netTool, _measurements);
@@ -42,8 +44,6 @@ namespace PrecisionEngineering.Data
 
 			CalculateControlPointElevation(netTool, _measurements);
 
-			CalculateGuideLineAngle(netTool, _measurements);
-			CalculateGuideLineDistance(netTool, _measurements);
 		}
 
 		private static void CalculateControlPointDistances(NetToolProxy netTool, ICollection<Measurement> measurements)
@@ -195,45 +195,6 @@ namespace PrecisionEngineering.Data
 					MeasurementFlags.HideOverlay | MeasurementFlags.Height | flag));
 
 			}
-
-		}
-
-		private static void CalculateGuideLineDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
-		{
-
-			if (netTool.ControlPointsCount == 0)
-				return;
-
-			if (!SnapController.SnappedGuideLine.HasValue)
-				return;
-
-			var guideLine = SnapController.SnappedGuideLine.Value;
-
-			var dist = Vector3.Distance(guideLine.Origin.Flatten(), guideLine.Intersect.Flatten());
-			var pos = Vector3Extensions.Average(guideLine.Origin, guideLine.Intersect);
-
-			measurements.Add(new DistanceMeasurement(dist, pos, true, guideLine.Origin, guideLine.Intersect,
-				MeasurementFlags.HideOverlay | MeasurementFlags.Guide));
-
-		}
-		private void CalculateGuideLineAngle(NetToolProxy netTool, IList<Measurement> measurements)
-		{
-
-			if (netTool.ControlPointsCount == 0)
-				return;
-
-			if (!SnapController.SnappedGuideLine.HasValue)
-				return;
-
-			var lastControlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
-			var guideLine = SnapController.SnappedGuideLine.Value;
-
-			var incomingDirection = lastControlPoint.m_direction;
-			var guideDirection = guideLine.Direction;
-
-			var angle = Vector3Extensions.GetSignedAngleBetween(guideDirection.Flatten(), incomingDirection.Flatten(), Vector3.up);
-
-			measurements.Add(new AngleMeasurement(angle, guideLine.Intersect, guideDirection, MeasurementFlags.Guide));
 
 		}
 

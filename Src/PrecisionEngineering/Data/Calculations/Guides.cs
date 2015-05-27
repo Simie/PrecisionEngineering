@@ -30,7 +30,7 @@ namespace PrecisionEngineering.Data.Calculations
 				//NetManager.instance.GetClosestSegments(endPosition, SegmentCache, out _segmentCacheCount);
 
 				GetClosestSegments(netInfo, endPosition, SegmentCache, out _segmentCacheCount);
-				SnapController.DebugPrint = string.Format("Closest Segment Count: {0}", _segmentCacheCount);
+				SnapController.DebugPrint = String.Format("Closest Segment Count: {0}", _segmentCacheCount);
 
 				var c = _segmentCacheCount;
 				for (ushort i = 0; i < c; i++) {
@@ -107,7 +107,7 @@ namespace PrecisionEngineering.Data.Calculations
 
 			var intersectDistance = Mathf.Sqrt(intersectDistanceSqr);
 
-			var line = new GuideLine(l1, intersect, netInfo.m_halfWidth*2f, intersectDistance);
+			var line = new GuideLine(l1, intersect, netInfo.m_halfWidth*2f, intersectDistance, segmentId);
 
 			int index;
 
@@ -175,6 +175,65 @@ namespace PrecisionEngineering.Data.Calculations
 
 		}
 
+
+
+		public static void CalculateGuideLineDistance(NetToolProxy netTool, ICollection<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount == 0)
+				return;
+
+			lock (SnapController.GuideLineLock) {
+
+				if (!SnapController.SnappedGuideLine.HasValue)
+					return;
+
+				var guideLine = SnapController.SnappedGuideLine.Value;
+
+				var dist = Vector3.Distance(guideLine.Origin.Flatten(), guideLine.Intersect.Flatten());
+				var pos = Vector3Extensions.Average(guideLine.Origin, guideLine.Intersect);
+
+				measurements.Add(new DistanceMeasurement(dist, pos, true, guideLine.Origin, guideLine.Intersect,
+					MeasurementFlags.HideOverlay | MeasurementFlags.Guide));
+
+			}
+
+		}
+
+		public static void CalculateGuideLineAngle(NetToolProxy netTool, IList<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount == 0)
+				return;
+
+			lock (SnapController.GuideLineLock) {
+
+				if (!SnapController.SnappedGuideLine.HasValue)
+					return;
+
+				var lastControlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
+				var guideLine = SnapController.SnappedGuideLine.Value;
+
+				var incomingDirection = lastControlPoint.m_direction;
+				var guideDirection = guideLine.Direction;
+
+				var angle = Vector3.Angle(guideDirection.Flatten(), incomingDirection.Flatten());
+
+				var normal = Vector3.Normalize(incomingDirection + guideDirection);
+				
+				measurements.Add(new AngleMeasurement(angle, guideLine.Intersect, normal, MeasurementFlags.Guide | MeasurementFlags.Secondary));
+
+			}
+
+		}
+
+		/// <summary>
+		/// A modified version of the NetManager.GetClosestSegments method which filters by the NetInfo class
+		/// </summary>
+		/// <param name="netInfo"></param>
+		/// <param name="pos"></param>
+		/// <param name="segments"></param>
+		/// <param name="count"></param>
 		private static void GetClosestSegments(NetInfo netInfo, Vector3 pos, ushort[] segments, out int count)
 		{
 
@@ -233,7 +292,7 @@ namespace PrecisionEngineering.Data.Calculations
 							segmentId = nm.m_segments.m_buffer[segmentId].m_nextGridSegment;
 
 							if (++num11 >= 32768) {
-								CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
+								CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + Environment.StackTrace);
 								break;
 							}
 
@@ -243,5 +302,6 @@ namespace PrecisionEngineering.Data.Calculations
 				searchRange *= 2f;
 			}
 		}
+
 	}
 }

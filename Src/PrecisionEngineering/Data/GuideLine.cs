@@ -34,13 +34,19 @@ namespace PrecisionEngineering.Data
 		/// </summary>
 		public Vector3 Direction;
 
-		public GuideLine(Vector3 origin, Vector3 intersect, float width, float distance) : this()
+		/// <summary>
+		/// Segment that the GuideLine is extrapolated from
+		/// </summary>
+		public ushort SourceSegment;
+
+		public GuideLine(Vector3 origin, Vector3 intersect, float width, float distance, ushort segment) : this()
 		{
 			Origin = origin;
 			Intersect = intersect;
 			Width = width;
 			Distance = distance;
 			Direction = origin.DirectionTo(intersect);
+			SourceSegment = segment;
 		}
 
 		public override string ToString()

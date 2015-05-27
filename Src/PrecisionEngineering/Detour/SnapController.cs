@@ -16,6 +16,8 @@ namespace PrecisionEngineering.Detour
 		public static bool EnableSnapping;
 		public static bool EnableAdvancedSnapping;
 
+		public static readonly object GuideLineLock = new object();
+
 		/// <summary>
 		/// The GuideLine object snapped to
 		/// </summary>
@@ -86,114 +88,121 @@ namespace PrecisionEngineering.Detour
 			GuideLines.Clear();
 			SnappedGuideLine = null;
 
-			// Quick bypass if custom snapping is disabled - jump to the original CS implementation
-			if (!EnableSnapping) {
-
-				goto Original;
-
-			}
-
 			minDistanceSq = info.GetMinNodeDistance();
-			minDistanceSq = minDistanceSq*minDistanceSq;
+			minDistanceSq = minDistanceSq * minDistanceSq;
 			var controlPoint = newPoint;
 			success = false;
 
-			// If dragging from a node
-			if (oldPoint.m_node != 0 && !newPoint.m_outside) {
+			if (EnableSnapping) {
 
-				// Node the road build operation is starting from
-				var sourceNodeId = oldPoint.m_node;
-				var sourceNode = NetManager.instance.m_nodes.m_buffer[sourceNodeId];
+				// If dragging from a node
+				if (oldPoint.m_node != 0 && !newPoint.m_outside) {
 
-				// Direction and length of the line from the node to the users control point
-				var userLineDirection = (newPoint.m_position - sourceNode.m_position).Flatten();
-				var userLineLength = userLineDirection.magnitude;
-				userLineDirection.Normalize();
+					// Node the road build operation is starting from
+					var sourceNodeId = oldPoint.m_node;
+					var sourceNode = NetManager.instance.m_nodes.m_buffer[sourceNodeId];
 
-				var closestSegmentId = NetNodeUtility.GetClosestSegmentId(sourceNodeId, userLineDirection);
+					// Direction and length of the line from the node to the users control point
+					var userLineDirection = (newPoint.m_position - sourceNode.m_position).Flatten();
+					var userLineLength = userLineDirection.magnitude;
+					userLineDirection.Normalize();
 
-				if (closestSegmentId > 0) {
+					var closestSegmentId = NetNodeUtility.GetClosestSegmentId(sourceNodeId, userLineDirection);
 
-					// Snap to angle increments originating from this closest segment
+					if (closestSegmentId > 0) {
 
-					var closestSegmentDirection = NetNodeUtility.GetSegmentExitDirection(sourceNodeId, closestSegmentId);
+						// Snap to angle increments originating from this closest segment
 
-					var currentAngle = Vector3Extensions.Angle(closestSegmentDirection, userLineDirection, Vector3.up);
+						var closestSegmentDirection = NetNodeUtility.GetSegmentExitDirection(sourceNodeId, closestSegmentId);
+
+						var currentAngle = Vector3Extensions.Angle(closestSegmentDirection, userLineDirection, Vector3.up);
+
+						var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
+						var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*closestSegmentDirection;
+
+						controlPoint.m_direction = snappedDirection.normalized;
+						controlPoint.m_position = sourceNode.m_position + userLineLength*controlPoint.m_direction;
+						controlPoint.m_position.y = newPoint.m_position.y;
+
+						minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
+						success = true;
+
+						//minDistanceSq = olpo;
+
+
+					}
+
+				} else if (oldPoint.m_segment != 0 && !newPoint.m_outside) {
+
+					// Else if dragging from a segment
+
+					// Segment the road build operation is starting from
+					var sourceSegmentId = oldPoint.m_segment;
+					var sourceSegment = NetManager.instance.m_segments.m_buffer[sourceSegmentId];
+
+					Vector3 segmentDirection;
+					Vector3 segmentPosition;
+
+					// Direction and length of the line between control points
+					var userLineDirection = (newPoint.m_position - oldPoint.m_position).Flatten();
+					var userLineLength = userLineDirection.magnitude;
+					userLineDirection.Normalize();
+
+					// Get direction of the segment at the branch position
+					sourceSegment.GetClosestPositionAndDirection(oldPoint.m_position, out segmentPosition, out segmentDirection);
+
+					var currentAngle = Vector3Extensions.Angle(segmentDirection, userLineDirection, Vector3.up);
+
+					segmentDirection = segmentDirection.Flatten().normalized;
 
 					var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
-					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*closestSegmentDirection;
+					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*segmentDirection;
 
 					controlPoint.m_direction = snappedDirection.normalized;
-					controlPoint.m_position = sourceNode.m_position + userLineLength*controlPoint.m_direction;
+					controlPoint.m_position = oldPoint.m_position + userLineLength*controlPoint.m_direction;
 					controlPoint.m_position.y = newPoint.m_position.y;
 
 					minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
-					success = true;
-
-					//minDistanceSq = olpo;
-
-
-				}
-
-			} else if (oldPoint.m_segment != 0 && !newPoint.m_outside) {
-
-				// Else if dragging from a segment
-
-				// Segment the road build operation is starting from
-				var sourceSegmentId = oldPoint.m_segment;
-				var sourceSegment = NetManager.instance.m_segments.m_buffer[sourceSegmentId];
-
-				Vector3 segmentDirection;
-				Vector3 segmentPosition;
-
-				// Direction and length of the line between control points
-				var userLineDirection = (newPoint.m_position - oldPoint.m_position).Flatten();
-				var userLineLength = userLineDirection.magnitude;
-				userLineDirection.Normalize();
-
-				// Get direction of the segment at the branch position
-				sourceSegment.GetClosestPositionAndDirection(oldPoint.m_position, out segmentPosition, out segmentDirection);
-
-				var currentAngle = Vector3Extensions.Angle(segmentDirection, userLineDirection, Vector3.up);
-
-				segmentDirection = segmentDirection.Flatten().normalized;
-
-				var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
-				var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*segmentDirection;
-
-				controlPoint.m_direction = snappedDirection.normalized;
-				controlPoint.m_position = oldPoint.m_position + userLineLength*controlPoint.m_direction;
-				controlPoint.m_position.y = newPoint.m_position.y;
-
-				minDistanceSq = (newPoint.m_position - controlPoint.m_position).sqrMagnitude;
-
-				success = true;
-
-			} else if (oldPoint.m_direction.sqrMagnitude > 0.5f) {
-
-				if (newPoint.m_node == 0 && !newPoint.m_outside) {
-
-					// Let's do some snapping between control point directions
-
-					var currentAngle = Vector3Extensions.Angle(oldPoint.m_direction, newPoint.m_direction, Vector3.up);
-
-					var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
-					var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*oldPoint.m_direction.Flatten();
-
-					controlPoint.m_direction = snappedDirection.normalized;
-
-					controlPoint.m_position = oldPoint.m_position +
-					                          Vector3.Distance(oldPoint.m_position.Flatten(), newPoint.m_position.Flatten())*
-					                          controlPoint.m_direction;
-
-					controlPoint.m_position.y = newPoint.m_position.y;
 
 					success = true;
 
+				} else if (oldPoint.m_direction.sqrMagnitude > 0.5f) {
+
+					if (newPoint.m_node == 0 && !newPoint.m_outside) {
+
+						// Let's do some snapping between control point directions
+
+						var currentAngle = Vector3Extensions.Angle(oldPoint.m_direction, newPoint.m_direction, Vector3.up);
+
+						var snappedAngle = Mathf.Round(currentAngle/Settings.SnapAngle)*Settings.SnapAngle;
+						var snappedDirection = Quaternion.AngleAxis(snappedAngle, Vector3.up)*oldPoint.m_direction.Flatten();
+
+						controlPoint.m_direction = snappedDirection.normalized;
+
+						controlPoint.m_position = oldPoint.m_position +
+						                          Vector3.Distance(oldPoint.m_position.Flatten(), newPoint.m_position.Flatten())*
+						                          controlPoint.m_direction;
+
+						controlPoint.m_position.y = newPoint.m_position.y;
+
+						success = true;
+
+					}
+
 				}
+
+			} else {
+
+				// Run the default snapping
+
+				ReturnControl();
+
+				controlPoint = NetTool.SnapDirection(newPoint, oldPoint, info, out success, out minDistanceSq);
+
+				StealControl();
 
 			}
-
+			
 			if (EnableAdvancedSnapping) {
 
 				if (controlPoint.m_segment == 0 && controlPoint.m_node == 0) {
@@ -204,18 +213,7 @@ namespace PrecisionEngineering.Detour
 
 			}
 
-			if (success)
-				return controlPoint;
-
-			Original:
-
-			ReturnControl();
-
-			var result = NetTool.SnapDirection(newPoint, oldPoint, info, out success, out minDistanceSq);
-
-			StealControl();
-
-			return result;
+			return controlPoint;
 
 		}
 
@@ -225,60 +223,67 @@ namespace PrecisionEngineering.Detour
 
 			var controlPoint = newPoint;
 
-			//if (controlPoint.m_position != _cachedGuideLineControlPoint.m_position) {
+			lock (GuideLineLock) {
+
+				SnappedGuideLine = null;
+				GuideLines.Clear();
+
+				//if (controlPoint.m_position != _cachedGuideLineControlPoint.m_position) {
 
 				Guides.CalculateGuideLines(info, oldPoint, controlPoint, GuideLines);
 
-			//}
+				//}
 
-			_cachedGuideLineControlPoint = controlPoint;
+				_cachedGuideLineControlPoint = controlPoint;
 
-			if (GuideLines.Count == 0) {
+				if (GuideLines.Count == 0) {
 
-				if (Debug.Enabled)
-					DebugPrint += " (No GuideLines Found)";
+					if (Debug.Enabled)
+						DebugPrint += " (No GuideLines Found)";
 
-				return newPoint;
+					return newPoint;
 
-			}
+				}
 
-			var minDist = float.MaxValue;
-			var closestLine = GuideLines[0];
+				var minDist = float.MaxValue;
+				var closestLine = GuideLines[0];
 
-			if (GuideLines.Count > 1) {
+				if (GuideLines.Count > 1) {
 
-				for (var i = 0; i < GuideLines.Count; i++) {
+					for (var i = 0; i < GuideLines.Count; i++) {
 
-					var gl = GuideLines[i];
-					var dist = Vector3Extensions.DistanceSquared(gl.Origin, newPoint.m_position) + gl.Distance*gl.Distance;
+						var gl = GuideLines[i];
+						var dist = Vector3Extensions.DistanceSquared(gl.Origin, newPoint.m_position) + gl.Distance*gl.Distance;
 
-					if (dist < minDist) {
-						closestLine = gl;
-						minDist = dist;
+						if (dist < minDist) {
+							closestLine = gl;
+							minDist = dist;
+						}
+
 					}
 
 				}
 
-			}
+				if (closestLine.Distance <= Settings.GuideLinesSnapDistance + closestLine.Width) {
 
-			if (closestLine.Distance <= Settings.GuideLinesSnapDistance + closestLine.Width) {
+					minDistanceSq = closestLine.Distance*closestLine.Distance;
 
-				minDistanceSq = closestLine.Distance*closestLine.Distance;
+					if (Debug.Enabled) {
+						DebugPrint += " Guide: " + closestLine.Intersect.ToString();
+					}
 
-				if (Debug.Enabled) {
-					DebugPrint += " Guide: " + closestLine.Intersect.ToString();
+					controlPoint.m_position = closestLine.Intersect;
+					controlPoint.m_position.y = newPoint.m_position.y;
+					controlPoint.m_direction = oldPoint.m_position.DirectionTo(newPoint.m_position);
+					success = true;
+
+					SnappedGuideLine = closestLine;
+
 				}
 
-				controlPoint.m_position = closestLine.Intersect;
-				controlPoint.m_position.y = newPoint.m_position.y;
-				controlPoint.m_direction = oldPoint.m_position.DirectionTo(newPoint.m_position);
-				success = true;
-
-				SnappedGuideLine = closestLine;
+				return controlPoint;
 
 			}
-
-			return controlPoint;
 
 		}
 

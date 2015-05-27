@@ -17,6 +17,8 @@ namespace PrecisionEngineering
 		ISimulationManager, IRenderableManager
 	{
 
+		private object _calculatorLock = new object();
+
 		/// <summary>
 		/// Managers should only be registered once, and then they persist over loads
 		/// </summary>
@@ -53,7 +55,9 @@ namespace PrecisionEngineering
 		private PrecisionCalculator _calculator;
 
 		private readonly PrecisionUI _ui = new PrecisionUI();
+
 		private bool _secondaryDetailEnabled;
+		private bool _advancedSnappingEnabled;
 
 		private bool _isLoaded = false;
 
@@ -119,12 +123,23 @@ namespace PrecisionEngineering
 			// Activate with shift
 			_secondaryDetailEnabled = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
+			_advancedSnappingEnabled = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-			SnapController.EnableAdvancedSnapping = _secondaryDetailEnabled;
+			SnapController.EnableAdvancedSnapping = _advancedSnappingEnabled;
+
+			if (!SnapController.EnableAdvancedSnapping) {
+
+				SnapController.SnappedGuideLine = null;
+				SnapController.GuideLines.Clear();
+
+			}
 
 			FakeRoadAI.DisableLengthSnap = SnapController.EnableSnapping && SnapController.EnableAdvancedSnapping;
 
-			_calculator.Update(_netToolProxy);
+			lock (_calculatorLock) {
+				_calculator.Update(_netToolProxy);
+			}
 
 		}
 
@@ -136,26 +151,31 @@ namespace PrecisionEngineering
 			if (!IsEnabled)
 				return;
 
-			_ui.ReleaseAll();
+			lock (_calculatorLock) {
 
-			for (var i = 0; i < _calculator.Measurements.Count; i++) {
+				_ui.ReleaseAll();
 
-				HandleMeasurement(cameraInfo, _calculator.Measurements[i]);
+				for (var i = 0; i < _calculator.Measurements.Count; i++) {
+
+					HandleMeasurement(cameraInfo, _calculator.Measurements[i]);
+
+				}
+
+				lock (SnapController.GuideLines) {
+
+					if (SnapController.SnappedGuideLine.HasValue)
+						Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
+
+				}
+
+				try {
+					_ui.Update();
+				} catch (Exception e) {
+					Debug.LogError("Error during UI Update");
+					Debug.LogError(e.ToString());
+				}
 
 			}
-
-			if (SnapController.SnappedGuideLine.HasValue)
-				Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
-
-			try {
-				_ui.Update();
-			} catch (Exception e) {
-				Debug.LogError("Error during UI Update");
-				Debug.LogError(e.ToString());
-			}
-
-			SnapController.SnappedGuideLine = null;
-			SnapController.GuideLines.Clear();
 
 		}
 
