@@ -22,6 +22,9 @@ namespace PrecisionEngineering.Data.Calculations
 			if (netTool.ControlPoints.Count < 1)
 				return;
 
+			if (netTool.ControlPoints[0].m_node == netTool.ControlPoints[1].m_node)
+				return;
+
 			var sourceNodeId = netTool.ControlPoints[0].m_node;
 
 			if (sourceNodeId == 0)
@@ -50,6 +53,9 @@ namespace PrecisionEngineering.Data.Calculations
 		{
 
 			if (netTool.ControlPoints.Count < 1)
+				return;
+
+			if (netTool.ControlPoints[0].m_node == netTool.ControlPoints[1].m_node)
 				return;
 
 			var controlPoint = netTool.ControlPoints[netTool.ControlPointsCount];

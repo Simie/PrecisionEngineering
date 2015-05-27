@@ -27,6 +27,9 @@ namespace PrecisionEngineering.Data.Calculations
 			var sourceControlPoint = netTool.ControlPoints[0];
 			var destControlPoint = netTool.ControlPoints[1];
 
+			if (sourceControlPoint.m_segment == destControlPoint.m_segment)
+				return;
+
 			var lineDirection = sourceControlPoint.m_position.Flatten().DirectionTo(destControlPoint.m_position.Flatten());
 
 			CalculateAngles(sourceControlPoint.m_position, sourceControlPoint.m_direction.Flatten(), lineDirection, measurements);
@@ -44,6 +47,9 @@ namespace PrecisionEngineering.Data.Calculations
 
 			var sourceControlPoint = netTool.ControlPoints[netTool.ControlPointsCount - 1];
 			var lastControlPoint = netTool.ControlPoints[netTool.ControlPointsCount];
+
+			if (sourceControlPoint.m_segment == lastControlPoint.m_segment)
+				return;
 
 			var lineDirection = lastControlPoint.m_position.Flatten().DirectionTo(sourceControlPoint.m_position.Flatten());
 

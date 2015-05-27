@@ -215,17 +215,44 @@ namespace PrecisionEngineering.Data.Calculations
 				var guideLine = SnapController.SnappedGuideLine.Value;
 
 				var incomingDirection = lastControlPoint.m_direction;
-				var guideDirection = guideLine.Direction;
 
-				var angle = Vector3.Angle(guideDirection.Flatten(), incomingDirection.Flatten());
-
-				var normal = Vector3.Normalize(incomingDirection + guideDirection);
-				
-				measurements.Add(new AngleMeasurement(angle, guideLine.Intersect, normal, MeasurementFlags.Guide | MeasurementFlags.Secondary));
+				CalculateAngles(guideLine.Intersect, guideLine.Direction, -incomingDirection, measurements);
 
 			}
 
 		}
+
+
+		static void CalculateAngles(Vector3 anglePosition, Vector3 guideDirection, Vector3 incomingDirection, ICollection<Measurement> measurements)
+		{
+
+			guideDirection = guideDirection.Flatten().normalized;
+			incomingDirection = incomingDirection.Flatten().normalized;
+
+			var angleSize = Vector3.Angle(guideDirection, incomingDirection);
+			var angleDirection = Vector3.Normalize(guideDirection + incomingDirection);
+
+			var otherAngleSize = 180f - angleSize;
+			var otherAngleDirection = Vector3.Normalize(-guideDirection + incomingDirection);
+
+			if (otherAngleSize < angleSize) {
+
+				Util.Swap(ref angleSize, ref otherAngleSize);
+				Util.Swap(ref angleDirection, ref otherAngleDirection);
+
+			}
+
+			measurements.Add(new AngleMeasurement(angleSize, anglePosition, angleDirection,
+				MeasurementFlags.Primary | MeasurementFlags.Guide));
+
+			if (Mathf.Abs(angleSize - 180f) < 0.5f || Mathf.Abs(otherAngleSize - 180f) < 0.5f)
+				return;
+
+			measurements.Add(new AngleMeasurement(otherAngleSize, anglePosition, otherAngleDirection,
+				MeasurementFlags.Secondary | MeasurementFlags.Guide));
+
+		}
+
 
 		/// <summary>
 		/// A modified version of the NetManager.GetClosestSegments method which filters by the NetInfo class

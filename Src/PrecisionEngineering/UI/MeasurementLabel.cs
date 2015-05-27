@@ -35,7 +35,7 @@ namespace PrecisionEngineering.UI
 			backgroundSprite = "CursorInfoBack";
 			autoSize = true;
 			padding = new RectOffset(5, 5, 5, 5);
-			textScale = 0.8f;
+			textScale = 0.6f;
 			textAlignment = UIHorizontalAlignment.Center;
 			verticalAlignment = UIVerticalAlignment.Middle;
 			zOrder = 100;

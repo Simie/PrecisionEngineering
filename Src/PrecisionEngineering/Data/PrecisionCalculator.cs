@@ -37,12 +37,13 @@ namespace PrecisionEngineering.Data
 			Guides.CalculateGuideLineDistance(netTool, _measurements);
 
 			//CalculateNodePositionDistance(netTool, _measurements);
-			//CalculateNearbySegments(netTool, _measurements);
+			CalculateNearbySegments(netTool, _measurements);
 
 			CalculateControlPointDistances(netTool, _measurements);
 			CalculateControlPointAngle(netTool, _measurements);
 
 			CalculateControlPointElevation(netTool, _measurements);
+			CalculateCompassAngle(netTool, _measurements);
 
 		}
 
@@ -102,12 +103,14 @@ namespace PrecisionEngineering.Data
 			if (netTool.NodePositions.m_size <= 1)
 				return;
 
+			if (SnapController.SnappedGuideLine.HasValue)
+				return;
 
 			var lastNode = netTool.NodePositions[netTool.NodePositions.m_size - 1];
 
 			int count;
 
-			NetManager.instance.GetClosestSegments(lastNode.m_position, _segments, out count);
+			NetUtil.GetClosestSegments(netTool.NetInfo, lastNode.m_position, _segments, out count);
 
 			if (count == 0)
 				return;
@@ -195,6 +198,32 @@ namespace PrecisionEngineering.Data
 					MeasurementFlags.HideOverlay | MeasurementFlags.Height | flag));
 
 			}
+
+		}
+
+		private void CalculateCompassAngle(NetToolProxy netTool, IList<Measurement> measurements)
+		{
+
+			if (netTool.ControlPointsCount < 1)
+				return;
+
+			// Ignore if dragging from a node or segment
+			if (netTool.ControlPoints[0].m_node != 0 || netTool.ControlPoints[0].m_segment != 0)
+				return;
+
+			var direction =
+				netTool.ControlPoints[0].m_position.Flatten().DirectionTo(netTool.ControlPoints[1].m_position.Flatten());
+
+			var north = Vector3.forward;
+
+			var angleSize = Vector3.Angle(north, direction);
+			var angleDirection = Vector3.Normalize(north + direction);
+
+			if (Mathf.Approximately(angleSize, 180f))
+				angleDirection = Vector3.right;
+
+			measurements.Add(new AngleMeasurement(angleSize, netTool.ControlPoints[0].m_position, angleDirection,
+				MeasurementFlags.Secondary));
 
 		}
 
