@@ -8,7 +8,7 @@ using UnityEngine;
 namespace PrecisionEngineering.Data
 {
 
-	class PrecisionCalculator
+	internal class PrecisionCalculator
 	{
 
 		public string DebugState = "";
@@ -18,11 +18,11 @@ namespace PrecisionEngineering.Data
 			get { return _measurements; }
 		}
 
-		private readonly List<Measurement> _measurements = new List<Measurement>(); 
+		private readonly List<Measurement> _measurements = new List<Measurement>();
 
 		public void Update(NetToolProxy netTool)
 		{
-			
+
 			_measurements.Clear();
 			DebugState = "";
 
@@ -53,7 +53,7 @@ namespace PrecisionEngineering.Data
 			if (netTool.ControlPointsCount < 1)
 				return;
 
-			for (var i = 1; i < netTool.ControlPointsCount+1; i++) {
+			for (var i = 1; i < netTool.ControlPointsCount + 1; i++) {
 
 				var p1 = netTool.ControlPoints[i - 1].m_position;
 				var p2 = netTool.ControlPoints[i].m_position;
@@ -158,7 +158,7 @@ namespace PrecisionEngineering.Data
 				var direction = p2 - p1;
 				var dist = direction.sqrMagnitude;
 				direction.Normalize();
-				
+
 
 				if (dist < minDist) {
 
