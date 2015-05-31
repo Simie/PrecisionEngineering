@@ -10,16 +10,30 @@ using UnityEngine;
 
 namespace PrecisionEngineering.Detour
 {
+
+	/// <summary>
+	/// Handles overriding the default NetTool SnapDirection and Snap methods.
+	/// </summary>
 	internal class SnapController
 	{
 
 		public static bool EnableSnapping;
 		public static bool EnableAdvancedSnapping;
 
+		/// <summary>
+		/// Toggle the default NetTool Snap behaviour.
+		/// </summary>
+		/// <see cref="SnapOverride"/>
+		public static bool EnableLengthSnapping = true;
+
+		/// <summary>
+		/// Lock object to use when accessing GuideLine data (as rendering appears to sometimes happen
+		/// on a different thread)
+		/// </summary>
 		public static readonly object GuideLineLock = new object();
 
 		/// <summary>
-		/// The GuideLine object snapped to
+		/// The GuideLine object last snapped to.
 		/// </summary>
 		public static GuideLine? SnappedGuideLine;
 
@@ -29,48 +43,48 @@ namespace PrecisionEngineering.Detour
 		public static readonly IList<GuideLine> GuideLines = new List<GuideLine>();
 
 		/// <summary>
-		/// Control point that was last used for generating guide lines.
+		/// Printed to debug panel when debugging is enabled.
 		/// </summary>
-		private static NetTool.ControlPoint _cachedGuideLineControlPoint;
-
 		public static string DebugPrint = "";
 
 		private static readonly MethodInfo SnapDirectionOriginalMethodInfo = typeof (NetTool).GetMethod("SnapDirection");
-		private static readonly MethodInfo SnapOriginalMethodInfo = typeof (NetTool).GetMethod("Snap", BindingFlags.NonPublic | BindingFlags.Instance);
+
+		private static readonly MethodInfo SnapOriginalMethodInfo = typeof (NetTool).GetMethod("Snap",
+			BindingFlags.NonPublic | BindingFlags.Instance);
 
 		private static readonly MethodInfo SnapDirectionOverrideMethodInfo =
 			typeof (SnapController).GetMethod("SnapDirectionOverride");
-		private static readonly MethodInfo SnapOverrideMethodInfo = typeof (SnapController).GetMethod("SnapOverride", BindingFlags.NonPublic | BindingFlags.Static);
+
+		private static readonly MethodInfo SnapOverrideMethodInfo = typeof (SnapController).GetMethod("SnapOverride",
+			BindingFlags.NonPublic | BindingFlags.Static);
 
 		private static RedirectCallsState _snapDirectionRevertState;
 		private static RedirectCallsState _snapRevertState;
-		private static bool _hasControl;
+		private static bool _isDeployed;
 
-		static SnapController() {}
-
-		public static void StealControl()
+		public static void Deploy()
 		{
 
-			if (_hasControl)
+			if (_isDeployed)
 				return;
 
 			_snapDirectionRevertState = RedirectionHelper.RedirectCalls(SnapDirectionOriginalMethodInfo, SnapDirectionOverrideMethodInfo);
 			_snapRevertState = RedirectionHelper.RedirectCalls(SnapOriginalMethodInfo, SnapOverrideMethodInfo);
 
-			_hasControl = true;
+			_isDeployed = true;
 
 		}
 
-		public static void ReturnControl()
+		public static void Revert()
 		{
 
-			if (!_hasControl)
+			if (!_isDeployed)
 				return;
 
 			RedirectionHelper.RevertRedirect(SnapDirectionOriginalMethodInfo, _snapDirectionRevertState);
 			RedirectionHelper.RevertRedirect(SnapOriginalMethodInfo, _snapRevertState);
 
-			_hasControl = false;
+			_isDeployed = false;
 
 		}
 
@@ -217,11 +231,11 @@ namespace PrecisionEngineering.Detour
 
 				// Run the default snapping
 
-				ReturnControl();
+				Revert();
 
 				controlPoint = NetTool.SnapDirection(newPoint, oldPoint, info, out success, out minDistanceSq);
 
-				StealControl();
+				Deploy();
 
 			}
 			
@@ -250,13 +264,7 @@ namespace PrecisionEngineering.Detour
 				SnappedGuideLine = null;
 				GuideLines.Clear();
 
-				//if (controlPoint.m_position != _cachedGuideLineControlPoint.m_position) {
-
 				Guides.CalculateGuideLines(info, oldPoint, controlPoint, GuideLines);
-
-				//}
-
-				_cachedGuideLineControlPoint = controlPoint;
 
 				if (GuideLines.Count == 0) {
 
@@ -313,13 +321,11 @@ namespace PrecisionEngineering.Detour
 			float refAngle)
 		{
 
-			//Debug.Log("snap override");
 
-			if (FakeRoadAI.DisableLengthSnap == true)
+			if (!EnableLengthSnapping)
 				return;
 
-			// Original method from dotPeek
-
+			// Original reflected method from dotPeek
 			direction = new Vector3(Mathf.Cos(refAngle), 0.0f, Mathf.Sin(refAngle));
 			Vector3 vector3_1 = direction * 8f;
 			Vector3 vector3_2 = new Vector3(vector3_1.z, 0.0f, -vector3_1.x);

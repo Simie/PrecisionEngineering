@@ -7,9 +7,15 @@ using System.Text;
 namespace PrecisionEngineering.Detour
 {
 
+	/// <summary>
+	/// Detouring some RoadAI methods to tweak how snapping is handled when advanced snapping is enabled.
+	/// </summary>
 	static class FakeRoadAI
 	{
 
+		/// <summary>
+		/// Disable the default road length snapping.
+		/// </summary>
 		public static bool DisableLengthSnap = false;
 
 		private static RedirectCallsState _revertState;

@@ -17,7 +17,6 @@ namespace PrecisionEngineering
 		ISimulationManager, IRenderableManager
 	{
 
-		private object _calculatorLock = new object();
 
 		/// <summary>
 		/// Managers should only be registered once, and then they persist over loads
@@ -82,13 +81,16 @@ namespace PrecisionEngineering
 			Debug.Log("Manager Unload");
 
 			_netToolProxy = null;
-
 			_isLoaded = false;
 
 		}
 
 		private void Update()
 		{
+
+			// Search for NetTool if not already loaded.
+			// Performing this in the default MonoBehaviour so that we will
+			// correctly catch any modded NetTools that replace the default.
 
 			if (_isLoaded && !IsEnabled) {
 
@@ -127,6 +129,7 @@ namespace PrecisionEngineering
 
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			SnapController.EnableAdvancedSnapping = _advancedSnappingEnabled;
+			SnapController.EnableLengthSnapping = SnapController.EnableSnapping && SnapController.EnableAdvancedSnapping;
 
 			if (!SnapController.EnableAdvancedSnapping) {
 
@@ -135,11 +138,7 @@ namespace PrecisionEngineering
 
 			}
 
-			FakeRoadAI.DisableLengthSnap = SnapController.EnableSnapping && SnapController.EnableAdvancedSnapping;
-
-			lock (_calculatorLock) {
-				_calculator.Update(_netToolProxy);
-			}
+			_calculator.Update(_netToolProxy);
 
 		}
 
@@ -151,47 +150,57 @@ namespace PrecisionEngineering
 			if (!IsEnabled)
 				return;
 
-			lock (_calculatorLock) {
+			_ui.ReleaseAll();
 
-				_ui.ReleaseAll();
 
-				for (var i = 0; i < _calculator.Measurements.Count; i++) {
+			for (var i = 0; i < _calculator.Measurements.Count; i++) {
 
-					HandleMeasurement(cameraInfo, _calculator.Measurements[i]);
+				HandleMeasurement(cameraInfo, _calculator.Measurements[i]);
 
-				}
+			}
 
-				lock (SnapController.GuideLines) {
+			lock (SnapController.GuideLineLock) {
 
-					if (SnapController.SnappedGuideLine.HasValue)
-						Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
+				if (SnapController.SnappedGuideLine.HasValue)
+					Rendering.GuideLineRenderer.Render(cameraInfo, SnapController.SnappedGuideLine.Value);
 
-				}
+			}
 
-				try {
-					_ui.Update();
-				} catch (Exception e) {
-					Debug.LogError("Error during UI Update");
-					Debug.LogError(e.ToString());
-				}
+			try {
+
+				_ui.Update();
+
+			} catch (Exception e) {
+
+				Debug.LogError("Error during UI Update");
+				Debug.LogError(e.ToString());
 
 			}
 
 		}
 
+		/// <summary>
+		/// Perform rendering of a measurement.
+		/// </summary>
 		private void HandleMeasurement(RenderManager.CameraInfo cameraInfo, Measurement m)
 		{
+
+			// TODO: Move out of this slightly monolithic manager class
 
 			if ((m.Flags & MeasurementFlags.Secondary) != 0 && !_secondaryDetailEnabled) {
 				return;
 			}
 
-			// Disable guide measurements when advanced snapping is disabled
 			if ((m.Flags & MeasurementFlags.Guide) != 0 && !SnapController.EnableAdvancedSnapping) {
+				return;
+			}	
+			
+			if ((m.Flags & MeasurementFlags.Snap) != 0 && !SnapController.EnableSnapping) {
 				return;
 			}
 
 			if (m is AngleMeasurement) {
+
 				var am = m as AngleMeasurement;
 
 				if (am.AngleSize < 1f) {
@@ -205,9 +214,11 @@ namespace PrecisionEngineering
 				label.SetWorldPosition(cameraInfo, Rendering.AngleRenderer.GetLabelWorldPosition(am));
 
 				return;
+
 			}
 
 			if (m is DistanceMeasurement) {
+
 				var dm = m as DistanceMeasurement;
 
 				if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure) {
@@ -240,6 +251,7 @@ namespace PrecisionEngineering
 				label.SetWorldPosition(cameraInfo, Rendering.DistanceRenderer.GetLabelWorldPosition(dm));
 
 				return;
+
 			}
 
 			Debug.LogError("Measurement has no renderer: " + m.ToString());

@@ -8,6 +8,10 @@ using UnityEngine;
 namespace PrecisionEngineering.Data
 {
 
+	/// <summary>
+	/// The brains of the operation. Delegates out data extraction to various static helper
+	/// classes, and compiles a list of measurements from the results.
+	/// </summary>
 	internal class PrecisionCalculator
 	{
 
@@ -36,7 +40,6 @@ namespace PrecisionEngineering.Data
 			Guides.CalculateGuideLineAngle(netTool, _measurements);
 			Guides.CalculateGuideLineDistance(netTool, _measurements);
 
-			//CalculateNodePositionDistance(netTool, _measurements);
 			CalculateNearbySegments(netTool, _measurements);
 
 			CalculateControlPointDistances(netTool, _measurements);
@@ -47,6 +50,9 @@ namespace PrecisionEngineering.Data
 
 		}
 
+		/// <summary>
+		/// Calculates distances between control points in the NetTool.
+		/// </summary>
 		private static void CalculateControlPointDistances(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
@@ -67,10 +73,13 @@ namespace PrecisionEngineering.Data
 
 		}
 
+		/// <summary>
+		/// If there are 3 control points, calculates the angle between the three points
+		/// </summary>
 		private static void CalculateControlPointAngle(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
-			if (netTool.ControlPointsCount < 2)
+			if (netTool.ControlPointsCount != 2)
 				return;
 
 			var p1 = netTool.ControlPoints[0];
@@ -94,6 +103,9 @@ namespace PrecisionEngineering.Data
 
 		private static readonly ushort[] _segments = new ushort[16];
 
+		/// <summary>
+		/// Adds a distance measurement from the last control point to the closest segment.
+		/// </summary>
 		private static void CalculateNearbySegments(NetToolProxy netTool, ICollection<Measurement> measurements)
 		{
 
@@ -115,14 +127,6 @@ namespace PrecisionEngineering.Data
 			if (count == 0)
 				return;
 
-			/*//List<ushort> sourceNodeConnectedSegmentIds = null;
-
-			if (netTool.ControlPoints[0].m_node > 0) {
-
-				sourceNodeConnectedSegmentIds =
-					NetNodeUtility.GetNodeSegmentIds(NetManager.instance.m_nodes.m_buffer[netTool.ControlPoints[0].m_node]);
-
-			}*/
 			var p1 = lastNode.m_position;
 
 			var minDist = float.MaxValue;
@@ -130,10 +134,6 @@ namespace PrecisionEngineering.Data
 			var found = false;
 
 			for (var i = 0; i < count; i++) {
-
-				/*// Skip segments attached to the node we are building from
-				if (sourceNodeConnectedSegmentIds != null && sourceNodeConnectedSegmentIds.Contains(_segments[i]))
-					continue;*/
 
 				if (netTool.ControlPoints[0].m_segment > 0 && _segments[i] == netTool.ControlPoints[0].m_segment)
 					continue;
@@ -179,6 +179,9 @@ namespace PrecisionEngineering.Data
 
 		}
 
+		/// <summary>
+		/// Calculates the elevation of each control point. The last control point will be marked as primary, others as secondary.
+		/// </summary>
 		private void CalculateControlPointElevation(NetToolProxy netTool, IList<Measurement> measurements)
 		{
 
@@ -201,6 +204,9 @@ namespace PrecisionEngineering.Data
 
 		}
 
+		/// <summary>
+		/// Calculates the angle of the first control point relative to compass north.
+		/// </summary>
 		private void CalculateCompassAngle(NetToolProxy netTool, IList<Measurement> measurements)
 		{
 
@@ -223,7 +229,7 @@ namespace PrecisionEngineering.Data
 				angleDirection = Vector3.right;
 
 			measurements.Add(new AngleMeasurement(angleSize, netTool.ControlPoints[0].m_position, angleDirection,
-				MeasurementFlags.Secondary));
+				MeasurementFlags.Snap));
 
 		}
 

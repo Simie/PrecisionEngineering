@@ -8,7 +8,8 @@ namespace PrecisionEngineering.Data
 {
 
 	/// <summary>
-	/// Wrapper around NetTool to expose private properties so we can calculate for our GUI
+	/// Wrapper around NetTool to expose private properties so we can perform calculations with
+	/// the control point data.
 	/// </summary>
 	public class NetToolProxy
 	{
@@ -17,15 +18,17 @@ namespace PrecisionEngineering.Data
 
 		public bool IsEnabled { get { return _target.enabled; } }
 
-	    public bool IsSnappingEnabled
+
+		public bool IsSnappingEnabled
 	    {
 	        get { return (bool) _snapField.GetValue(_target); }
 	        set { _snapField.SetValue(_target, value); }
 	    }
 
-	    public NetTool.Mode Mode { get
-	    {
-	        return (NetTool.Mode)_modeField.GetValue(_target); } }
+		public NetTool.Mode Mode
+		{
+			get { return (NetTool.Mode) _modeField.GetValue(_target); }
+		}
 
 		public ToolBase.ToolErrors BuildErrors
 		{
@@ -38,6 +41,7 @@ namespace PrecisionEngineering.Data
 		{
 			get { return (IList<NetTool.ControlPoint>) _controlPointsField.GetValue(_target); }
 		}
+
 		public FastList<NetTool.NodePosition> NodePositions
 		{
 			get { return NetTool.m_nodePositionsMain; }
@@ -45,8 +49,7 @@ namespace PrecisionEngineering.Data
 
 		public NetInfo NetInfo
 		{
-			get
-			{  return (NetInfo) _netInfoField.GetValue(_target); }
+			get { return (NetInfo) _netInfoField.GetValue(_target); }
 		}
 
 		public ToolController ToolController
@@ -54,7 +57,7 @@ namespace PrecisionEngineering.Data
 			get { return (ToolController)_toolControllerField.GetValue(_target); }
 		}
 
-		private ToolBase _target;
+		private readonly ToolBase _target;
 
 		private readonly FieldInfo _controlPointCountField;
 		private readonly FieldInfo _controlPointsField;

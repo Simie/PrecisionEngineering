@@ -5,8 +5,14 @@ namespace PrecisionEngineering.Data
 	class AngleMeasurement : Measurement
 	{
 
+		/// <summary>
+		/// Size of the angle in degrees
+		/// </summary>
 		public float AngleSize { get; private set; }
 
+		/// <summary>
+		/// Direction vector with the angle normal (ie the "middle" of the angle)
+		/// </summary>
 		public Vector3 AngleNormal { get; private set; }
 
 		public AngleMeasurement(float size, Vector3 position, Vector3 normal, MeasurementFlags flags)

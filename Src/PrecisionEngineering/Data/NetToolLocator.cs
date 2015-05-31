@@ -4,10 +4,18 @@ using System.Linq;
 using System.Text;
 
 namespace PrecisionEngineering.Data
-{
+{     
+	 
+	/// <summary>
+	/// Helper class for locating the NetTool. 
+	/// </summary>
 	public static class NetToolLocator
 	{
-
+		
+		/// <summary>
+		/// Attempt to locate the NetTool and create a NetToolProxy object if successful.
+		/// </summary>
+		/// <returns>A <c>NetToolProxy</c> object if successful, otherwise null.</returns>
 		public static NetToolProxy Locate()
 		{
 

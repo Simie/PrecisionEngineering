@@ -19,6 +19,6 @@ Click the subscribe button above to install, then enable the mod in the Content 
 
 Source code available [url=https://github.com/Simie/PrecisionEngineering]here[/url].
 
-If you like this mod and want to buy me a beer, you can [url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z5JNJHA6DR5V4]donate here[/url].
+If you like this mod and want to buy me a drink, you can [url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z5JNJHA6DR5V4]donate here[/url].
 
 If you like this mod and want to see more of my work (primarily Unity3D tools at the moment), check out [url=https://www.stompyrobot.uk]Stompy Robot[/url].

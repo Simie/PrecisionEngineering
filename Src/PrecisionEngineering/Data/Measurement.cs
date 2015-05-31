@@ -33,12 +33,22 @@ namespace PrecisionEngineering.Data
 		/// </summary>
 		Height = 1 << 5,
 
+		/// <summary>
+		/// Indicate that this measurement is used for snapping and should be visable when
+		/// snapping is enabled.
+		/// </summary>
+		Snap = 1 << 6,
+
 	}
 
 	abstract class Measurement
 	{
 
 		public MeasurementFlags Flags { get; private set; }
+
+		/// <summary>
+		/// Where in world-space the measurement is located.
+		/// </summary>
 		public Vector3 Position { get; private set; }
 
 		public bool HideOverlay { get { return Flags.IsFlagSet(MeasurementFlags.HideOverlay); } }

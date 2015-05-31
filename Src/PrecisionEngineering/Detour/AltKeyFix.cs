@@ -12,13 +12,12 @@ namespace PrecisionEngineering.Detour
 	/// <summary>
 	/// There appears to bug in Unity3D and Windows where holding left-alt, then ctrl, then releasing left-alt will trigger Alt-GR being pressed and won't release
 	/// until you press Alt-GR itself. (On Windows Alt-Ctrl = AltGR. I'm not sure why it gets stuck)
-	/// This breaks camera movement etc, so I've detoured the input methods used to disable checking for AltGR when masking alt.
-	/// RAlt is still checked so it shouldn't actually be a problem.
+	/// This breaks camera movement etc, so I've detoured the input methods used by camera input
+	/// to disable checking for AltGR when masking alt.
+	/// Right-Alt is still checked so it shouldn't actually be a problem.
 	/// </summary>
 	static class AltKeyFix
 	{
-
-		public static bool DisableLengthSnap = false;
 
 		private static RedirectCallsState _revertState1;
 		private static RedirectCallsState _revertState2;
@@ -63,6 +62,8 @@ namespace PrecisionEngineering.Detour
 
 		}
 
+		#region Decompiled and Modified Code
+
 		private const int MASK_KEY = 268435455;
 		private const int MASK_CONTROL = 1073741824;
 		private const int MASK_SHIFT = 536870912;
@@ -81,6 +82,8 @@ namespace PrecisionEngineering.Detour
 			KeyCode keyCode = (KeyCode)(num & MASK_KEY);
 			return keyCode != KeyCode.None && Input.GetKeyUp(keyCode) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) == ((num & MASK_CONTROL) != 0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) == ((num & MASK_SHIFT) != 0) && (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) == ((num & MASK_ALT) != 0);
 		}
+
+		#endregion
 
 	}
 }
