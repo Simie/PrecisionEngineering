@@ -69,7 +69,7 @@ namespace PrecisionEngineering.UI
 			txt.AppendLine(string.Format("SnapController:\n{0}", SnapController.DebugPrint));
 			SnapController.DebugPrint = "";
 
-			txt.AppendLine(string.Format("Disable Snapping: {0}", FakeRoadAI.DisableLengthSnap));
+			txt.AppendLine(string.Format("SnapController.EnableLengthSnapping: {0}", SnapController.EnableLengthSnapping));
 
 			txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
 			txt.AppendLine(string.Format(", Node Count: {0}", NetTool.NodePositions.m_size));

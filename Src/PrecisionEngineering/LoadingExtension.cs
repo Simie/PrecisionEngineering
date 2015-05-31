@@ -20,12 +20,12 @@ namespace PrecisionEngineering
 
 			base.OnLevelLoaded(mode);
 
+			Debug.Log("OnLevelLoaded");
+
 			Manager.OnLevelLoaded();
 
-			Debug.Log("Detouring NetTool.SnapDirection()...");
-
+			FakeRoadAI.Deploy();
 			SnapController.Deploy();
-			//FakeRoadAI.Deploy();
 			AltKeyFix.Deploy();
 
 		}
@@ -33,10 +33,10 @@ namespace PrecisionEngineering
 		public override void OnLevelUnloading()
 		{
 
-			Debug.Log("Returning control of NetTool.SnapDirection()...");
+			Debug.Log("OnLevelUnloading");
 
+			FakeRoadAI.Revert();
 			SnapController.Revert();
-			//FakeRoadAI.Revert();
 			AltKeyFix.Revert();
 
 			Manager.OnLevelUnloaded();

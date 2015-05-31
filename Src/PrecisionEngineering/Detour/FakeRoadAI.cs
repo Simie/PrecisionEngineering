@@ -13,11 +13,6 @@ namespace PrecisionEngineering.Detour
 	static class FakeRoadAI
 	{
 
-		/// <summary>
-		/// Disable the default road length snapping.
-		/// </summary>
-		public static bool DisableLengthSnap = false;
-
 		private static RedirectCallsState _revertState;
 		private static readonly MethodInfo _originalGetLengthSnapMethodInfo = typeof(RoadAI).GetMethod("GetLengthSnap");
 		private static readonly MethodInfo _newGetLengthSnapMethodInfo = typeof(FakeRoadAI).GetMethod("GetLengthSnap");
@@ -45,7 +40,7 @@ namespace PrecisionEngineering.Detour
 		public static float GetLengthSnap(RoadAI roadAi)
 		{
 
-			if (DisableLengthSnap)
+			if (!SnapController.EnableLengthSnapping)
 				return 0f;
 
 			return roadAi.m_enableZoning ? 8f : 0f;

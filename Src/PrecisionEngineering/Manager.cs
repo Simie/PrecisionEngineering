@@ -129,7 +129,7 @@ namespace PrecisionEngineering
 
 			SnapController.EnableSnapping = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			SnapController.EnableAdvancedSnapping = _advancedSnappingEnabled;
-			SnapController.EnableLengthSnapping = SnapController.EnableSnapping && SnapController.EnableAdvancedSnapping;
+			SnapController.EnableLengthSnapping = !SnapController.EnableAdvancedSnapping;
 
 			if (!SnapController.EnableAdvancedSnapping) {
 
