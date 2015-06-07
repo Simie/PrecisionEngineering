@@ -1,4 +1,5 @@
-﻿using ColossalFramework;
+﻿using System;
+using ColossalFramework;
 using ICities;
 using PrecisionEngineering.Detour;
 using PrecisionEngineering.UI;
@@ -20,26 +21,44 @@ namespace PrecisionEngineering
 
 			base.OnLevelLoaded(mode);
 
-			Debug.Log("OnLevelLoaded");
+			try {
 
-			Manager.OnLevelLoaded();
+				Debug.Log("OnLevelLoaded");
 
-			FakeRoadAI.Deploy();
-			SnapController.Deploy();
-			AltKeyFix.Deploy();
+				Manager.OnLevelLoaded();
+
+				FakeRoadAI.Deploy();
+				SnapController.Deploy();
+				AltKeyFix.Deploy();
+
+			} catch (Exception e) {
+
+				Debug.LogError("Error during OnLevelLoaded callback");
+				Debug.LogError(e.ToString());
+
+			}
 
 		}
 
 		public override void OnLevelUnloading()
 		{
 
-			Debug.Log("OnLevelUnloading");
+			try {
 
-			FakeRoadAI.Revert();
-			SnapController.Revert();
-			AltKeyFix.Revert();
+				Debug.Log("OnLevelUnloading");
 
-			Manager.OnLevelUnloaded();
+				FakeRoadAI.Revert();
+				SnapController.Revert();
+				AltKeyFix.Revert();
+
+				Manager.OnLevelUnloaded();
+
+			} catch (Exception e) {
+
+				Debug.LogError("Error during OnLevelUnloading callback");
+				Debug.LogError(e.ToString());
+
+			}
 
 			base.OnLevelUnloading();
 
