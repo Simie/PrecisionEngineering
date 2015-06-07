@@ -12,8 +12,8 @@ namespace PrecisionEngineering
 
 		public string Description
 		{
-			get { return "Build roads with precision. Hold CTRL to enable angle snapping, hold SHIFT to show more information."; }
-		}
+            get { return "Build with precision. Hold CTRL to enable angle snapping, SHIFT to show more information, ALT to snap to guide-lines."; }
+        }
 
-	}
+    }
 }
