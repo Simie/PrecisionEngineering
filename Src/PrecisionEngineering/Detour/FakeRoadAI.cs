@@ -1,52 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace PrecisionEngineering.Detour
 {
+    /// <summary>
+    /// Detouring some RoadAI methods to tweak how snapping is handled when advanced snapping is enabled.
+    /// </summary>
+    internal static class FakeRoadAI
+    {
+        private static RedirectCallsState _revertState;
+        private static readonly MethodInfo _originalGetLengthSnapMethodInfo = typeof (RoadAI).GetMethod("GetLengthSnap");
+        private static readonly MethodInfo _newGetLengthSnapMethodInfo = typeof (FakeRoadAI).GetMethod("GetLengthSnap");
 
-	/// <summary>
-	/// Detouring some RoadAI methods to tweak how snapping is handled when advanced snapping is enabled.
-	/// </summary>
-	static class FakeRoadAI
-	{
+        public static void Deploy()
+        {
+            if (_originalGetLengthSnapMethodInfo == null)
+            {
+                throw new NullReferenceException("Original GetLengthSnap method not found");
+            }
 
-		private static RedirectCallsState _revertState;
-		private static readonly MethodInfo _originalGetLengthSnapMethodInfo = typeof(RoadAI).GetMethod("GetLengthSnap");
-		private static readonly MethodInfo _newGetLengthSnapMethodInfo = typeof(FakeRoadAI).GetMethod("GetLengthSnap");
+            if (_newGetLengthSnapMethodInfo == null)
+            {
+                throw new NullReferenceException("New GetLengthSnap method not found");
+            }
 
-		public static void Deploy()
-		{
+            _revertState = RedirectionHelper.RedirectCalls(_originalGetLengthSnapMethodInfo,
+                _newGetLengthSnapMethodInfo);
+        }
 
-			if (_originalGetLengthSnapMethodInfo == null) {
-				throw new NullReferenceException("Original GetLengthSnap method not found");
-			}
+        public static void Revert()
+        {
+            RedirectionHelper.RevertRedirect(_originalGetLengthSnapMethodInfo, _revertState);
+        }
 
-			if (_newGetLengthSnapMethodInfo == null) {
-				throw new NullReferenceException("New GetLengthSnap method not found");
-			}
+        public static float GetLengthSnap(RoadAI roadAi)
+        {
+            if (!SnapController.EnableLengthSnapping)
+            {
+                return 0f;
+            }
 
-			_revertState = RedirectionHelper.RedirectCalls(_originalGetLengthSnapMethodInfo,
-				_newGetLengthSnapMethodInfo);
-		}
-
-		public static void Revert()
-		{
-			RedirectionHelper.RevertRedirect(_originalGetLengthSnapMethodInfo, _revertState);
-		}
-
-		public static float GetLengthSnap(RoadAI roadAi)
-		{
-
-			if (!SnapController.EnableLengthSnapping)
-				return 0f;
-
-			return roadAi.m_enableZoning ? 8f : 0f;
-
-		}
-
-	}
-
+            return roadAi.m_enableZoning ? 8f : 0f;
+        }
+    }
 }

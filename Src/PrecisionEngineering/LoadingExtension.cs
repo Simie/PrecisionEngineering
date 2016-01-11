@@ -1,68 +1,57 @@
 ﻿using System;
-using ColossalFramework;
 using ICities;
 using PrecisionEngineering.Detour;
-using PrecisionEngineering.UI;
-using PrecisionEngineering.Utilities;
 using UE = UnityEngine;
 
 namespace PrecisionEngineering
 {
-	public class LoadingExtension : LoadingExtensionBase
-	{
+    public class LoadingExtension : LoadingExtensionBase
+    {
+        public override void OnCreated(ILoading loading)
+        {
+            base.OnCreated(loading);
+        }
 
-		public override void OnCreated(ILoading loading)
-		{
-			base.OnCreated(loading);
-		}
+        public override void OnLevelLoaded(LoadMode mode)
+        {
+            base.OnLevelLoaded(mode);
 
-		public override void OnLevelLoaded(LoadMode mode)
-		{
+            try
+            {
+                Debug.Log("OnLevelLoaded");
 
-			base.OnLevelLoaded(mode);
+                Manager.OnLevelLoaded();
 
-			try {
+                FakeRoadAI.Deploy();
+                SnapController.Deploy();
+                AltKeyFix.Deploy();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Error during OnLevelLoaded callback");
+                Debug.LogError(e.ToString());
+            }
+        }
 
-				Debug.Log("OnLevelLoaded");
+        public override void OnLevelUnloading()
+        {
+            try
+            {
+                Debug.Log("OnLevelUnloading");
 
-				Manager.OnLevelLoaded();
+                FakeRoadAI.Revert();
+                SnapController.Revert();
+                AltKeyFix.Revert();
 
-				FakeRoadAI.Deploy();
-				SnapController.Deploy();
-				AltKeyFix.Deploy();
+                Manager.OnLevelUnloaded();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Error during OnLevelUnloading callback");
+                Debug.LogError(e.ToString());
+            }
 
-			} catch (Exception e) {
-
-				Debug.LogError("Error during OnLevelLoaded callback");
-				Debug.LogError(e.ToString());
-
-			}
-
-		}
-
-		public override void OnLevelUnloading()
-		{
-
-			try {
-
-				Debug.Log("OnLevelUnloading");
-
-				FakeRoadAI.Revert();
-				SnapController.Revert();
-				AltKeyFix.Revert();
-
-				Manager.OnLevelUnloaded();
-
-			} catch (Exception e) {
-
-				Debug.LogError("Error during OnLevelUnloading callback");
-				Debug.LogError(e.ToString());
-
-			}
-
-			base.OnLevelUnloading();
-
-		}
-
-	}
+            base.OnLevelUnloading();
+        }
+    }
 }

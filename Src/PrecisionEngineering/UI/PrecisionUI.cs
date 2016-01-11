@@ -4,108 +4,95 @@ using PrecisionEngineering.Data;
 
 namespace PrecisionEngineering.UI
 {
-	class PrecisionUI
-	{
+    internal class PrecisionUI
+    {
+        private readonly List<MeasurementLabel> _activeAngleLabels = new List<MeasurementLabel>();
+        private readonly List<MeasurementLabel> _angleLabelPool = new List<MeasurementLabel>();
+        private DebugUI _debugUi;
 
-		public NetToolProxy NetToolProxy { get; set; }
-		public PrecisionCalculator Calculator { get; set; }
+        private UIView _rootView;
 
-		private UIView _rootView;
+        public NetToolProxy NetToolProxy { get; set; }
+        public PrecisionCalculator Calculator { get; set; }
 
-		private readonly List<MeasurementLabel> _activeAngleLabels = new List<MeasurementLabel>();
-		private readonly List<MeasurementLabel> _angleLabelPool = new List<MeasurementLabel>();
-		private DebugUI _debugUi;
+        private void Load()
+        {
+            _rootView = UIView.GetAView();
 
-		public PrecisionUI()
-		{
+            // When reloading a game, all of this will be destroyed anyway
+            _activeAngleLabels.Clear();
+            _angleLabelPool.Clear();
 
+            if (Debug.Enabled)
+            {
+                CreateDebugUI();
+            }
+        }
 
-		}
+        public void CreateDebugUI()
+        {
+            if (_rootView == null)
+            {
+                Load();
+            }
 
-		void Load()
-		{
+            _debugUi = _rootView.AddUIComponent(typeof (DebugUI)) as DebugUI;
+        }
 
-			_rootView = UIView.GetAView();
+        public void ReleaseAll()
+        {
+            if (_rootView == null)
+            {
+                Load();
+            }
 
-			// When reloading a game, all of this will be destroyed anyway
-			_activeAngleLabels.Clear();
-			_angleLabelPool.Clear();
+            for (var i = _activeAngleLabels.Count - 1; i >= 0; i--)
+            {
+                _angleLabelPool.Add(_activeAngleLabels[i]);
+                _activeAngleLabels[i].isVisible = false;
+            }
 
-			if (Debug.Enabled)
-				CreateDebugUI();
+            _activeAngleLabels.Clear();
+        }
 
-		}
+        public MeasurementLabel GetMeasurementLabel()
+        {
+            if (_rootView == null)
+            {
+                Load();
+            }
 
-		public void CreateDebugUI()
-		{
+            MeasurementLabel l;
 
-			if (_rootView == null)
-				Load();
+            if (_angleLabelPool.Count == 0)
+            {
+                l = CreateMeasurementLabel();
+            }
+            else
+            {
+                l = _angleLabelPool[_angleLabelPool.Count - 1];
+                _angleLabelPool.RemoveAt(_angleLabelPool.Count - 1);
+            }
 
-			_debugUi = _rootView.AddUIComponent(typeof(DebugUI)) as DebugUI;
+            _activeAngleLabels.Add(l);
+            l.isVisible = true;
 
-		}
+            return l;
+        }
 
-		public void ReleaseAll()
-		{
+        private MeasurementLabel CreateMeasurementLabel()
+        {
+            return _rootView.AddUIComponent(typeof (MeasurementLabel)) as MeasurementLabel;
+        }
 
-			if (_rootView == null)
-				Load();
-
-			for (var i = _activeAngleLabels.Count - 1; i >= 0; i--) {
-
-				_angleLabelPool.Add(_activeAngleLabels[i]);
-				_activeAngleLabels[i].isVisible = false;
-
-			}
-
-			_activeAngleLabels.Clear();
-
-		}
-
-		public MeasurementLabel GetMeasurementLabel()
-		{
-
-			if (_rootView == null)
-				Load();
-
-			MeasurementLabel l;
-
-			if (_angleLabelPool.Count == 0) {
-
-				l = CreateMeasurementLabel();
-
-			} else {
-
-				l = _angleLabelPool[_angleLabelPool.Count - 1];
-				_angleLabelPool.RemoveAt(_angleLabelPool.Count - 1);
-
-			}
-
-			_activeAngleLabels.Add(l);
-			l.isVisible = true;
-
-			return l;
-
-		}
-
-		MeasurementLabel CreateMeasurementLabel()
-		{
-
-			return _rootView.AddUIComponent(typeof (MeasurementLabel)) as MeasurementLabel;
-
-		}
-
-		public void Update()
-		{
-
-			if (_debugUi != null) {
-				_debugUi.Calculator = Calculator;
-				_debugUi.NetTool = NetToolProxy;
-				_debugUi.DoUpdate();
-			}
-
-		}
-
-	}
+        public void Update()
+        {
+            if (_debugUi != null)
+            {
+                _debugUi.Calculator = Calculator;
+                _debugUi.NetTool = NetToolProxy;
+                _debugUi.DoUpdate();
+            }
+        }
+    }
 }
