@@ -17,6 +17,8 @@ namespace PrecisionEngineering.UI
 
         private void Load()
         {
+            Debug.Log("[PrecisionUI] Load");
+
             _rootView = UIView.GetAView();
 
             // When reloading a game, all of this will be destroyed anyway

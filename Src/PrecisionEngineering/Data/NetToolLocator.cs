@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Object = UnityEngine.Object;
 
@@ -9,41 +10,72 @@ namespace PrecisionEngineering.Data
     /// </summary>
     public static class NetToolLocator
     {
+        private static readonly List<int> _cache = new List<int>(); 
+
         /// <summary>
         /// Attempt to locate the NetTool and create a NetToolProxy object if successful.
         /// </summary>
+        /// <param name="excludeCache">Skip entries from the cache to try and get the newest instance.</param>
         /// <returns>A <c>NetToolProxy</c> object if successful, otherwise null.</returns>
         public static NetToolProxy Locate()
         {
-            NetToolProxy p = null;
+            var toolType = typeof (NetTool);
 
             // Hack to include FineRoadHeights. If more mods start replacing the NetTool
             // it might be wise to implement an interface system like in Road Protractor
             if (AppDomain.CurrentDomain.GetAssemblies().Any(q => q.FullName.Contains("FineRoadHeights")))
             {
-                Debug.Log("Locating FineRoadHeights tool...");
-
                 var t = Type.GetType("NetToolFine, FineRoadHeights");
-                ToolBase instance;
 
-                if (t != null && (instance = Object.FindObjectOfType(t) as ToolBase) != null &&
-                    (p = NetToolProxy.Create(instance)) != null)
+                if (t != null)
                 {
-                    Debug.Log("Success!");
-                    return p;
+                    toolType = t;
                 }
-
-                Debug.Log("Not found, falling back to default NetTool.");
             }
 
-            var tool = Object.FindObjectOfType<NetTool>();
+            Debug.Log($"Looking for NetTool of type `{toolType}`");
 
-            if (tool != null)
+            var tools = Object.FindObjectsOfType(toolType).Cast<ToolBase>().ToList();
+
+            if (tools.Count == 0 && toolType != typeof(NetTool))
             {
-                p = NetToolProxy.Create(tool);
+                Debug.Log($"Falling back to default NetTool");
+                toolType = typeof(NetTool);
+                tools = Object.FindObjectsOfType(toolType).Cast<ToolBase>().ToList();
             }
 
-            return p;
+            Debug.Log($"Found Tools ({tools.Count}): " + string.Join(", ", tools.Select(q => q.name + $" ({q.GetInstanceID()})").ToArray()));
+
+            if (tools.Count == 0)
+            {
+                Debug.LogError("Could not find NetTool");
+                return null;
+            }
+
+            if (tools.Count > 1)
+            {
+                // The "First" NetTool created is the one we want, since it's the one Unity seems to use.
+                Debug.Log($"Multiple NetTool instances found, using cache to filter to an already known one.");
+                tools = tools.Where(p => _cache.Contains(p.GetInstanceID())).ToList();
+            }
+
+            if (tools.Count > 1)
+            {
+                Debug.LogWarning("Still more than 1 NetTool instance found. Using the last one in the hopes it's the right one...");
+            }
+
+            var tool = tools.LastOrDefault();
+
+            if (tool == null)
+            {
+                Debug.LogError("Failed to find NetTool");
+                return null;
+            }
+
+            if(!_cache.Contains(tool.GetInstanceID()))
+                _cache.Add(tool.GetInstanceID());
+
+            return NetToolProxy.Create(tool);
         }
     }
 }

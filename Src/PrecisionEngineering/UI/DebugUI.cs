@@ -68,6 +68,7 @@ namespace PrecisionEngineering.UI
             SnapController.DebugPrint = "";
 
             txt.AppendLine(string.Format("SnapController.EnableLengthSnapping: {0}", SnapController.EnableLengthSnapping));
+            txt.AppendLine(string.Format("NetToolProxy.IsEnabled: {0}", NetTool.IsEnabled));
 
             txt.Append(string.Format("Control Point Count: {0}", NetTool.ControlPointsCount));
             txt.AppendLine(string.Format(", Node Count: {0}", NetTool.NodePositions.m_size));

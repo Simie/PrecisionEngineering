@@ -15,21 +15,19 @@ namespace PrecisionEngineering
         /// Managers should only be registered once, and then they persist over loads
         /// </summary>
         private static bool _hasRegistered;
-
-        private readonly PrecisionUI _ui = new PrecisionUI();
-        private bool _advancedSnappingEnabled;
-
-        private PrecisionCalculator _calculator;
-
         private bool _isLoaded;
+
+        private readonly PrecisionCalculator _calculator = new PrecisionCalculator();
+        private readonly PrecisionUI _ui = new PrecisionUI();
+
+        private bool _advancedSnappingEnabled;
+        private bool _secondaryDetailEnabled;
 
         private NetToolProxy _netToolProxy;
 
-        private bool _secondaryDetailEnabled;
-
         public bool IsEnabled
         {
-            get { return _isLoaded && _netToolProxy != null && _netToolProxy.IsValid; }
+            get { return _netToolProxy != null && _netToolProxy.IsValid; }
         }
 
         public static void OnLevelLoaded()
@@ -61,7 +59,6 @@ namespace PrecisionEngineering
 
             Debug.Log("Manager Load");
 
-            _calculator = new PrecisionCalculator();
             _ui.Calculator = _calculator;
         }
 
@@ -71,6 +68,8 @@ namespace PrecisionEngineering
 
             _netToolProxy = null;
             _isLoaded = false;
+
+            _ui.ReleaseAll();
         }
 
         private void Update()
@@ -97,6 +96,7 @@ namespace PrecisionEngineering
         {
             if (!IsEnabled)
             {
+                //Debug.LogWarning("[SimulationStepImpl] !IsEnabled");
                 return;
             }
 
@@ -131,6 +131,7 @@ namespace PrecisionEngineering
 
             if (!IsEnabled)
             {
+                //Debug.LogWarning("[EndOverlayImpl] !IsEnabled");
                 return;
             }
 
