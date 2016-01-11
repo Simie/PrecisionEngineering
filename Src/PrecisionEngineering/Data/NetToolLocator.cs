@@ -10,12 +10,11 @@ namespace PrecisionEngineering.Data
     /// </summary>
     public static class NetToolLocator
     {
-        private static readonly List<int> _cache = new List<int>(); 
+        private static readonly List<int> Cache = new List<int>(); 
 
         /// <summary>
         /// Attempt to locate the NetTool and create a NetToolProxy object if successful.
         /// </summary>
-        /// <param name="excludeCache">Skip entries from the cache to try and get the newest instance.</param>
         /// <returns>A <c>NetToolProxy</c> object if successful, otherwise null.</returns>
         public static NetToolProxy Locate()
         {
@@ -25,12 +24,7 @@ namespace PrecisionEngineering.Data
             // it might be wise to implement an interface system like in Road Protractor
             if (AppDomain.CurrentDomain.GetAssemblies().Any(q => q.FullName.Contains("FineRoadHeights")))
             {
-                var t = Type.GetType("NetToolFine, FineRoadHeights");
-
-                if (t != null)
-                {
-                    toolType = t;
-                }
+                toolType = Type.GetType("NetToolFine, FineRoadHeights") ?? toolType;
             }
 
             Debug.Log($"Looking for NetTool of type `{toolType}`");
@@ -56,7 +50,7 @@ namespace PrecisionEngineering.Data
             {
                 // The "First" NetTool created is the one we want, since it's the one Unity seems to use.
                 Debug.Log($"Multiple NetTool instances found, using cache to filter to an already known one.");
-                tools = tools.Where(p => _cache.Contains(p.GetInstanceID())).ToList();
+                tools = tools.Where(p => Cache.Contains(p.GetInstanceID())).ToList();
             }
 
             if (tools.Count > 1)
@@ -72,8 +66,8 @@ namespace PrecisionEngineering.Data
                 return null;
             }
 
-            if(!_cache.Contains(tool.GetInstanceID()))
-                _cache.Add(tool.GetInstanceID());
+            if(!Cache.Contains(tool.GetInstanceID()))
+                Cache.Add(tool.GetInstanceID());
 
             return NetToolProxy.Create(tool);
         }
