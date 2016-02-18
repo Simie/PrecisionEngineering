@@ -1,4 +1,5 @@
-﻿using ColossalFramework.UI;
+﻿using System;
+using ColossalFramework.UI;
 using UnityEngine;
 
 namespace PrecisionEngineering.UI
@@ -19,6 +20,7 @@ namespace PrecisionEngineering.UI
                 // + new Vector2(vector3_2.x, vector3_2.y);
 
             relativePosition = vector3_3;
+            textScale = GetFontScale();
         }
 
         public override void Start()
@@ -28,7 +30,7 @@ namespace PrecisionEngineering.UI
             backgroundSprite = "CursorInfoBack";
             autoSize = true;
             padding = new RectOffset(5, 5, 5, 5);
-            textScale = 0.65f;
+            textScale = GetFontScale();
             textAlignment = UIHorizontalAlignment.Center;
             verticalAlignment = UIVerticalAlignment.Middle;
             zOrder = 100;
@@ -41,6 +43,22 @@ namespace PrecisionEngineering.UI
             isInteractive = false;
 
             //<color #87d3ff>Construction cost: 520</color>
+        }
+
+        private static float GetFontScale()
+        {
+            var size = ModSettings.FontSize;
+            switch (size)
+            {
+                case 0:
+                    return 0.65f;
+                case 1:
+                    return 0.8f;
+                case 2:
+                    return 1.1f;
+            }
+
+            throw new IndexOutOfRangeException();
         }
     }
 }
