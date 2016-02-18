@@ -1,4 +1,8 @@
+[img]http://i.imgur.com/oLnq6h3.png[/img]
+
 Precision Engineering augments Cities: Skylines by adding angle snapping, guidelines and additional information to assist you when building roads, train lines, pipes and power lines.
+
+[img]http://i.imgur.com/voLHeOi.gif[/img]
 
 [h1]Installation[/h1]
 Click the subscribe button above to install, then enable the mod in the Content Manager on the Cities: Skylines main menu.
