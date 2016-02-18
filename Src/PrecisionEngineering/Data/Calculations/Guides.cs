@@ -129,7 +129,7 @@ namespace PrecisionEngineering.Data.Calculations
             var ra = Vector3.Cross(guideDirection, Vector3.up);
             var quad = new Quad3(l1 + ra, l1 - ra, intersect + ra, intersect - ra);
 
-            if (NetManager.instance.OverlapQuad(Quad2.XZ(quad), 0, 1280f, netInfo.m_class.m_layer, nodeId, 0, segmentId))
+            if (NetManager.instance.OverlapQuad(Quad2.XZ(quad), 0, 1280f, ItemClass.CollisionType.Undefined, netInfo.m_class.m_layer, nodeId, 0, segmentId))
             {
                 return;
             }
