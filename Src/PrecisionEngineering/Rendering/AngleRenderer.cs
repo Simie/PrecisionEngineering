@@ -33,7 +33,7 @@ namespace PrecisionEngineering.Rendering
 
         public static Vector3 GetLabelWorldPosition(AngleMeasurement angle)
         {
-            return angle.Position + angle.AngleNormal*GetAngleDistance(angle.Flags);
+			return angle.Position + angle.AngleNormal * GetAngleDistance(angle.Flags) + angle.AngleNormal * 22f;
         }
 
         public static void Render(RenderManager.CameraInfo cameraInfo, AngleMeasurement angle)
