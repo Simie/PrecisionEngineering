@@ -4,7 +4,7 @@ namespace PrecisionEngineering
 {
     internal static class Settings
     {
-        public const float MinimumDistanceMeasure = 3;
+        public const float MinimumDistanceMeasure = 0.9f;
 
         public const float SnapAngle = 5;
 
