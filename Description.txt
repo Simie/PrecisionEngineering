@@ -8,7 +8,6 @@ Precision Engineering augments Cities: Skylines by adding angle snapping, guidel
 Click the subscribe button above to install, then enable the mod in the Content Manager on the Cities: Skylines main menu.
 
 [h1]Key Features[/h1]
-
 [b]Note:[/b] For a more visual guide to the features, [url=https://imgur.com/a/YGXHH]click here[/url].
 
 - Adds angle and distance measurements when building roads, train lines, pipes and power lines.
@@ -21,10 +20,16 @@ Click the subscribe button above to install, then enable the mod in the Content 
 
 [b]Can be safely removed at any time.[/b] Does not modify your save game file or need to be active when loading a save that previously used this mod.
 
-If you like this mod and would like to buy me a drink, you can click the button below.
+[url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z5JNJHA6DR5V4]Donate[/url] |
+ [url=https://github.com/Simie/PrecisionEngineering]Source Code[/url]
 
-[url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z5JNJHA6DR5V4][img]https://img.shields.io/badge/donate-paypal-brightgreen.svg[/img][/url]  [url=https://github.com/Simie/PrecisionEngineering][img]https://img.shields.io/github/stars/Simie/PrecisionEngineering.svg[/img][/url] [url=https://github.com/Simie/PrecisionEngineering/blob/master/LICENSE.txt][img]https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)[/img][/url]
+If you like this mod and want to see more of my work, check out [url=https://www.simonmoles.com]my website[/url].
 
-If you like this mod and want to see more of my work (primarily Unity3D tools at the moment), check out [url=https://www.stompyrobot.uk]Stompy Robot[/url].
+Maybe you'll like my Spotify playlist, [url=https://open.spotify.com/user/prosimie/playlist/6iNenOLfxDf94ZF9OZA8fd]Music to Code By[/url]?
 
 This mod uses the [url=https://github.com/sschoener/cities-skylines-detour]detours library[/url] created by [url=http://steamcommunity.com/id/copernicus]cope[/url]. A big thanks to him for sharing that code, many mods on the workshop would not be possible without it.
+
+[h1]Having Issues?[/h1]
+- Make sure you have the mod enabled in the Content Manager. 
+- Bugs/Crashes? Try disabling all other mods and running with just Precision Engineering enabled. If you are sure it is not caused by another mod, please post your logs in [url=http://steamcommunity.com/workshop/filedetails/discussion/445589127/490125103638441491/]this thread[/url] and I'll try and take a look.
+- I don't own any of the DLC so can't test with them installed. Users report that the mod works fine, however.
