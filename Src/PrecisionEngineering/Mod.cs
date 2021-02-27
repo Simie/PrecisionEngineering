@@ -23,7 +23,15 @@ namespace PrecisionEngineering
         {
             var group = helper.AddGroup("UI");
             group.AddDropdown("Font Size", new [] {"Normal", "Large", "X-Large"}, ModSettings.FontSize,
-                OnFontSizeChanged);
+                OnFontSizeChanged); 
+            
+            group.AddDropdown("Measurement Unit", new [] {"Metric", "Imperial"}, (int)ModSettings.Unit,
+                OnMeasurementUnitChanged);
+        }
+
+        private void OnMeasurementUnitChanged(int sel)
+        {
+            ModSettings.Unit = (ModSettings.Units) sel;
         }
 
         private void OnFontSizeChanged(int val)

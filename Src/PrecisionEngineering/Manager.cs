@@ -4,6 +4,7 @@ using PrecisionEngineering.Data;
 using PrecisionEngineering.Detour;
 using PrecisionEngineering.Rendering;
 using PrecisionEngineering.UI;
+using PrecisionEngineering.Utilities;
 using UnityEngine;
 
 namespace PrecisionEngineering
@@ -218,21 +219,19 @@ namespace PrecisionEngineering
 
                 if ((dm.Flags & MeasurementFlags.Height) != 0)
                 {
-                    dist = string.Format("H: {0:#}{1}", dm.Length.RoundToNearest(1), "m");
+                    dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
                 }
                 else
                 {
-                    dist = string.Format("{0:#}{1}", (dm.Length/8f).RoundToNearest(1), "u");
+                    dist = StringUtil.GetDistanceMeasurementString(dm.Length, _secondaryDetailEnabled);
 
                     if (_secondaryDetailEnabled)
                     {
-                        dist += string.Format(" ({0}{1})", (int) dm.Length.RoundToNearest(1), "m");
-
-                        var heightdiff = (int) dm.RelativeHeight.RoundToNearest(1);
+                       var heightdiff = (int) dm.RelativeHeight.RoundToNearest(1);
 
                         if (Mathf.Abs(heightdiff) > 0)
                         {
-                            dist += string.Format("\n(Elev: {0}{1})", heightdiff, "m");
+                            dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
                         }
                     }
                 }

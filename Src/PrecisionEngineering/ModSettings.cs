@@ -5,6 +5,12 @@ namespace PrecisionEngineering
 {
     internal static class ModSettings
     {
+        public enum Units
+        {
+            Metric,
+            Imperial
+        }
+
         public static int FontSize
         {
             get
@@ -30,6 +36,29 @@ namespace PrecisionEngineering
             }
         }
 
+        public static Units Unit
+        {
+            get
+            {
+                if (!_unit.HasValue)
+                {
+                    _unit = (Units)PlayerPrefs.GetInt("PE_UNIT", 0);
+                }
+
+                return _unit.Value;
+            }
+            set
+            {
+                if (value == _unit)
+                {
+                    return;
+                }
+                PlayerPrefs.SetInt("PE_UNIT", (int)value);
+                _unit = value;
+            }
+        }
+
+        private static Units? _unit;
         private static int? _fontSize;
     }
 }
