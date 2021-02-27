@@ -8,7 +8,7 @@ var installFolder = Directory((EnvironmentVariable("LOCALAPPDATA")) + "/Colossal
 //////////////////////////////////////////////////////////////////////
 
 Task("Clean")
-    .WithCriteria(c => HasArgument("rebuild"))
+    //.WithCriteria(c => HasArgument("rebuild"))
     .Does(() =>
 {
     CleanDirectory($"./src/PrecisionEngineering/bin/{configuration}");
