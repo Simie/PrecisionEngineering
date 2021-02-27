@@ -40,7 +40,8 @@ namespace PrecisionEngineering.Detour
                 return 0f;
             }
 
-            return roadAi.m_enableZoning ? 8f : 0f;
+            // No net tool overrides this value any more - just return the default.
+            return 8f; 
         }
     }
 }
