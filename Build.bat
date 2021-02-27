@@ -1,4 +1,4 @@
 @echo off
 cls
-"FAKE\Fake.exe" Build.fsx
+dotnet cake
 pause
