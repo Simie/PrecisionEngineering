@@ -232,6 +232,7 @@ namespace PrecisionEngineering
                         if (Mathf.Abs(heightdiff) > 0)
                         {
                             dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
+                            dist += string.Format("\n(Grade: {0}", (heightdiff / dm.Length).ToString("P02"));
                         }
                     }
                 }

@@ -3,6 +3,7 @@ using PrecisionEngineering.Data.Calculations;
 using PrecisionEngineering.Detour;
 using PrecisionEngineering.Utilities;
 using UnityEngine;
+using ColossalFramework.Math;
 
 namespace PrecisionEngineering.Data
 {
@@ -47,6 +48,41 @@ namespace PrecisionEngineering.Data
 
             CalculateControlPointElevation(netTool, _measurements);
             CalculateCompassAngle(netTool, _measurements);
+
+            CalculateArcLength(netTool, _measurements);
+        }
+
+        /// <summary>
+        /// Calculates the arc length of a curved road, if there are three control points.
+        /// </summary>
+        private void CalculateArcLength(NetToolProxy netTool, List<Measurement> measurements)
+        {
+            if (netTool.ControlPointsCount != 2)
+            {
+                return;
+            }
+
+            var p1 = netTool.ControlPoints[0];
+            var p2 = netTool.ControlPoints[1];
+            var p3 = netTool.ControlPoints[2];
+
+            //Beziers take 4 points, not 3, so we make a crude approximation of the two midle controll points here
+            var c1 = (p2.m_position - p1.m_position) * 0.552f + p1.m_position;
+            var c2 = (p2.m_position - p3.m_position) * 0.552f + p3.m_position;
+
+            var bezier = new Bezier3(p1.m_position, c1, c2, p3.m_position);
+
+            var center = bezier.Position(0.5f);
+
+            //Approximate the length by measuring between a bunch of points.
+            float length = 0;
+            const int count = 16;
+            for(int i = 0; i < count; i++)
+            {
+                length += (bezier.Position(i / (float)count).Flatten() - bezier.Position((i + 1) / (float)count).Flatten()).magnitude;
+            }
+
+            measurements.Add(new DistanceMeasurement(length, center, false, p1.m_position, p3.m_position, MeasurementFlags.None));
         }
 
         /// <summary>
