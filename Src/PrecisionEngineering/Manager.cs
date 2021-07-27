@@ -220,6 +220,11 @@ namespace PrecisionEngineering
                 if ((dm.Flags & MeasurementFlags.Height) != 0)
                 {
                     dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
+                    if (_secondaryDetailEnabled && !float.IsNaN(dm.CurvatureRadius))
+                    {
+                        dist += string.Format("\n(Radius: {0}", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
+                    }
+
                 }
                 else
                 {
@@ -233,6 +238,10 @@ namespace PrecisionEngineering
                         {
                             dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
                             dist += string.Format("\n(Grade: {0}", (heightdiff / dm.Length).ToString("P02"));
+                        }
+                        if(!float.IsNaN(dm.CurvatureRadius))
+                        {
+                            dist += string.Format("\n(Radius: {0}", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
                         }
                     }
                 }

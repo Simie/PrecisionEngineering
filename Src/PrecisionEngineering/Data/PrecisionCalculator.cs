@@ -46,7 +46,7 @@ namespace PrecisionEngineering.Data
             CalculateControlPointDistances(netTool, _measurements);
             CalculateControlPointAngle(netTool, _measurements);
 
-            CalculateControlPointElevation(netTool, _measurements);
+            CalculateControlPointElevationAndCurveRadius(netTool, _measurements);
             CalculateCompassAngle(netTool, _measurements);
 
             CalculateArcLength(netTool, _measurements);
@@ -66,12 +66,7 @@ namespace PrecisionEngineering.Data
             var p2 = netTool.ControlPoints[1];
             var p3 = netTool.ControlPoints[2];
 
-            //Beziers take 4 points, not 3, so we make a crude approximation of the two midle controll points here
-            var c1 = (p2.m_position - p1.m_position) * 0.552f + p1.m_position;
-            var c2 = (p2.m_position - p3.m_position) * 0.552f + p3.m_position;
-
-            var bezier = new Bezier3(p1.m_position, c1, c2, p3.m_position);
-
+            var bezier = BezierUtil.CreateNetworkCurve(p1.m_position, p2.m_position, p3.m_position);
             var center = bezier.Position(0.5f);
 
             //Approximate the length by measuring between a bunch of points.
@@ -82,7 +77,7 @@ namespace PrecisionEngineering.Data
                 length += (bezier.Position(i / (float)count).Flatten() - bezier.Position((i + 1) / (float)count).Flatten()).magnitude;
             }
 
-            measurements.Add(new DistanceMeasurement(length, center, false, p1.m_position, p3.m_position, MeasurementFlags.None));
+            measurements.Add(new DistanceMeasurement(length, center, false, p1.m_position, p3.m_position, BezierUtil.FindCurvatureRadius(bezier, 0.5f), MeasurementFlags.Grade));
         }
 
         /// <summary>
@@ -103,7 +98,12 @@ namespace PrecisionEngineering.Data
                 var dist = Vector3.Distance(p1.Flatten(), p2.Flatten());
                 var pos = Vector3Extensions.Average(p1, p2);
 
-                measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, MeasurementFlags.HideOverlay));
+                var flags = MeasurementFlags.HideOverlay;
+
+                if (netTool.ControlPointsCount == 1) //it's straight.
+                    flags |= MeasurementFlags.Grade;
+
+                measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, float.NaN, flags));
             }
         }
 
@@ -220,7 +220,7 @@ namespace PrecisionEngineering.Data
             if (found && Mathf.Sqrt(minDist) > Settings.MinimumDistanceMeasure)
             {
                 measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true,
-                    p1, p,
+                    p1, p, float.NaN,
                     MeasurementFlags.Secondary));
             }
         }
@@ -228,8 +228,20 @@ namespace PrecisionEngineering.Data
         /// <summary>
         /// Calculates the elevation of each control point. The last control point will be marked as primary, others as secondary.
         /// </summary>
-        private void CalculateControlPointElevation(NetToolProxy netTool, IList<Measurement> measurements)
+        private void CalculateControlPointElevationAndCurveRadius(NetToolProxy netTool, IList<Measurement> measurements)
         {
+            Bezier3 bezier = new Bezier3();
+            bool isCurved = false;
+            if(netTool.ControlPointsCount == 2)
+            {
+                isCurved = true;
+                bezier = BezierUtil.CreateNetworkCurve(
+                    netTool.ControlPoints[0].m_position,
+                    netTool.ControlPoints[1].m_position,
+                    netTool.ControlPoints[2].m_position
+                    );
+            }
+
             for (var i = 0; i <= netTool.ControlPointsCount; i++)
             {
                 // Only display the last control point elevation as a primary measurement
@@ -242,8 +254,22 @@ namespace PrecisionEngineering.Data
                 var botPos = controlPoint.m_position;
                 var topPos = controlPoint.m_position - new Vector3(0, controlPoint.m_elevation, 0);
 
+                float radius = float.NaN;
+
+                if(isCurved)
+                {
+                    if(i == 0)
+                    {
+                        radius = BezierUtil.FindCurvatureRadius(bezier, 0);
+                    }
+                    else if(i == 2)
+                    {
+                        radius = BezierUtil.FindCurvatureRadius(bezier, 1);
+                    }
+                }
+
                 measurements.Add(new DistanceMeasurement(e, Vector3Extensions.Average(botPos, topPos), true, botPos,
-                    topPos,
+                    topPos, radius,
                     MeasurementFlags.HideOverlay | MeasurementFlags.Height | flag));
             }
         }

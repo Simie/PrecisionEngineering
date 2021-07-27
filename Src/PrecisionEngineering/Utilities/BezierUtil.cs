@@ -107,11 +107,158 @@ namespace PrecisionEngineering.Utilities
 
             return new Bezier3
             {
-                a = new Vector3(r*Mathf.Cos(a1), 0, r*Mathf.Sin(a1)),
-                b = new Vector3(x2*cos_ar - y2*sin_ar, 0, x2*sin_ar + y2*cos_ar),
-                c = new Vector3(x3*cos_ar - y3*sin_ar, 0, x3*sin_ar + y3*cos_ar),
-                d = new Vector3(r*Mathf.Cos(a2), 0, r*Mathf.Sin(a2))
+                a = new Vector3(r * Mathf.Cos(a1), 0, r * Mathf.Sin(a1)),
+                b = new Vector3(x2 * cos_ar - y2 * sin_ar, 0, x2 * sin_ar + y2 * cos_ar),
+                c = new Vector3(x3 * cos_ar - y3 * sin_ar, 0, x3 * sin_ar + y3 * cos_ar),
+                d = new Vector3(r * Mathf.Cos(a2), 0, r * Mathf.Sin(a2))
             };
+        }
+
+        public static Bezier3 CreateNetworkCurve(Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            //Beziers take 4 points, not 3, so we make a crude approximation of the two midle controll points here
+            var c1 = (p2 - p1) * 0.552f + p1;
+            var c2 = (p2 - p3) * 0.552f + p3;
+
+            return new Bezier3(p1, c1, c2, p3);
+        }
+
+        public static float FindCurvatureRadius(Bezier3 bezier, float t)
+        {
+            const float delta = 0.01f;
+            float t1, t2, t3;
+            if(t < delta*2)
+            {
+                t1 = t;
+                t2 = t + delta;
+                t3 = t + delta * 2;
+            }
+            else if (t > 1 - delta * 2)
+            {
+                t1 = t;
+                t2 = t - delta;
+                t3 = t - delta * 2;
+            }
+            else
+            {
+                t1 = t - delta;
+                t2 = t;
+                t3 = t + delta;
+            }
+            var p1 = bezier.Position(t1).Flatten();
+            var p2 = bezier.Position(t2).Flatten();
+            var p3 = bezier.Position(t3).Flatten();
+
+            FindCircle(p1, p2, p3, out var center, out var radius);
+
+            //If the curve radius is big enough, we may as well ignore it.
+            if (radius > 10000)
+                radius = float.NaN;
+
+            return radius;
+        }
+        // Find a circle through the three points.
+        private static void FindCircle(Vector3 a, Vector3 b, Vector3 c,
+            out Vector3 center, out float radius)
+        {
+            // Get the perpendicular bisector of (x1, y1) and (x2, y2).
+            float x1 = (b.x + a.x) / 2;
+            float y1 = (b.z + a.z) / 2;
+            float dy1 = b.x - a.x;
+            float dx1 = -(b.z - a.z);
+
+            // Get the perpendicular bisector of (x2, y2) and (x3, y3).
+            float x2 = (c.x + b.x) / 2;
+            float y2 = (c.z + b.z) / 2;
+            float dy2 = c.x - b.x;
+            float dx2 = -(c.z - b.z);
+
+            // See where the lines intersect.
+            bool lines_intersect, segments_intersect;
+            Vector3 intersection, close1, close2;
+            FindIntersection(
+                new Vector3(x1, 0, y1), new Vector3(x1 + dx1, 0, y1 + dy1),
+                new Vector3(x2, 0, y2), new Vector3(x2 + dx2, 0, y2 + dy2),
+                out lines_intersect, out segments_intersect,
+                out intersection, out close1, out close2);
+            if (!lines_intersect)
+            {
+                center = new Vector3(0, 0, 0);
+                radius = float.NaN;
+            }
+            else
+            {
+                center = intersection;
+                float dx = center.x - a.x;
+                float dy = center.z - a.z;
+                radius = (float)Mathf.Sqrt(dx * dx + dy * dy);
+            }
+        }
+        // Find the point of intersection between
+        // the lines p1 --> p2 and p3 --> p4.
+        private static void FindIntersection(
+            Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4,
+            out bool lines_intersect, out bool segments_intersect,
+            out Vector3 intersection,
+            out Vector3 close_p1, out Vector3 close_p2)
+        {
+            // Get the segments' parameters.
+            float dx12 = p2.x - p1.x;
+            float dy12 = p2.z - p1.z;
+            float dx34 = p4.x - p3.x;
+            float dy34 = p4.z - p3.z;
+
+            // Solve for t1 and t2
+            float denominator = (dy12 * dx34 - dx12 * dy34);
+
+            float t1 =
+                ((p1.x - p3.x) * dy34 + (p3.z - p1.z) * dx34)
+                    / denominator;
+            if (float.IsInfinity(t1))
+            {
+                // The lines are parallel (or close enough to it).
+                lines_intersect = false;
+                segments_intersect = false;
+                intersection = new Vector3(float.NaN, float.NaN, float.NaN);
+                close_p1 = new Vector3(float.NaN, float.NaN, float.NaN);
+                close_p2 = new Vector3(float.NaN, float.NaN, float.NaN);
+                return;
+            }
+            lines_intersect = true;
+
+            float t2 =
+                ((p3.x - p1.x) * dy12 + (p1.z - p3.z) * dx12)
+                    / -denominator;
+
+            // Find the point of intersection.
+            intersection = new Vector3(p1.x + dx12 * t1, 0, p1.z + dy12 * t1);
+
+            // The segments intersect if t1 and t2 are between 0 and 1.
+            segments_intersect =
+                ((t1 >= 0) && (t1 <= 1) &&
+                 (t2 >= 0) && (t2 <= 1));
+
+            // Find the closest points on the segments.
+            if (t1 < 0)
+            {
+                t1 = 0;
+            }
+            else if (t1 > 1)
+            {
+                t1 = 1;
+            }
+
+            if (t2 < 0)
+            {
+                t2 = 0;
+            }
+            else if (t2 > 1)
+            {
+                t2 = 1;
+            }
+
+            close_p1 = new Vector3(p1.x + dx12 * t1, 0, p1.z + dy12 * t1);
+            close_p2 = new Vector3(p3.x + dx34 * t2, 0, p3.z + dy34 * t2);
         }
     }
 }
