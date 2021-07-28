@@ -206,7 +206,7 @@ namespace PrecisionEngineering
             {
                 var dm = m as DistanceMeasurement;
 
-                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure)
+                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure && (float.IsNaN(dm.CurvatureRadius) || !_secondaryDetailEnabled))
                 {
                     return;
                 }
@@ -215,36 +215,40 @@ namespace PrecisionEngineering
 
                 var label = _ui.GetMeasurementLabel();
 
-                string dist;
+                string dist = "";
 
-                if ((dm.Flags & MeasurementFlags.Height) != 0)
+                if (Mathf.Abs(dm.Length) > Settings.MinimumDistanceMeasure)
                 {
-                    dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
-                    if (_secondaryDetailEnabled && !float.IsNaN(dm.CurvatureRadius))
+                    if ((dm.Flags & MeasurementFlags.Height) != 0)
                     {
-                        dist += string.Format("\n(Radius: {0}", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
+                        dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
+
                     }
-
-                }
-                else
-                {
-                    dist = StringUtil.GetDistanceMeasurementString(dm.Length, _secondaryDetailEnabled);
-
-                    if (_secondaryDetailEnabled)
+                    else
                     {
-                       var heightdiff = (int) dm.RelativeHeight.RoundToNearest(1);
+                        dist = StringUtil.GetDistanceMeasurementString(dm.Length, _secondaryDetailEnabled);
 
-                        if (Mathf.Abs(heightdiff) > 0)
+                        if (_secondaryDetailEnabled)
                         {
-                            dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
-                            dist += string.Format("\n(Grade: {0}", (heightdiff / dm.Length).ToString("P02"));
-                        }
-                        if(!float.IsNaN(dm.CurvatureRadius))
-                        {
-                            dist += string.Format("\n(Radius: {0}", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
+                            var heightdiff = (int)dm.RelativeHeight.RoundToNearest(1);
+
+                            if (Mathf.Abs(heightdiff) > 0)
+                            {
+                                dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
+                                if ((dm.Flags & MeasurementFlags.Grade) != 0)
+                                    dist += string.Format("\n(Grade: {0})", (heightdiff / dm.Length).ToString("P02"));
+                            }
                         }
                     }
                 }
+                if (_secondaryDetailEnabled && !float.IsNaN(dm.CurvatureRadius))
+                {
+                    //We only need to add a newline if there's already text in there.
+                    if (dist.Length > 0)
+                        dist += "\n";
+                    dist += string.Format("(Radius: {0})", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
+                }
+
 
                 label.SetValue(dist);
                 label.SetWorldPosition(cameraInfo, DistanceRenderer.GetLabelWorldPosition(dm));
