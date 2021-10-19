@@ -48,6 +48,13 @@ namespace PrecisionEngineering.Data
 
             if (tools.Count > 1)
             {
+                // May other mods use NetTool as base for creating new tools (like Upgrade Untouchable) - so try to get exact class, once it's used by the game as default net tool
+                Debug.Log($"Multiple NetTool instances found, trying to get exact type member.");
+                tools = tools.Where(p => p.GetType() == toolType).ToList();
+            }
+
+            if (tools.Count > 1)
+            {
                 // The "First" NetTool created is the one we want, since it's the one Unity seems to use.
                 Debug.Log($"Multiple NetTool instances found, using cache to filter to an already known one.");
                 tools = tools.Where(p => Cache.Contains(p.GetInstanceID())).ToList();
