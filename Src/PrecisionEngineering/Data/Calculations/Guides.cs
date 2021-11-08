@@ -195,7 +195,7 @@ namespace PrecisionEngineering.Data.Calculations
                 var dist = Vector3.Distance(guideLine.Origin.Flatten(), guideLine.Intersect.Flatten());
                 var pos = Vector3Extensions.Average(guideLine.Origin, guideLine.Intersect);
 
-                measurements.Add(new DistanceMeasurement(dist, pos, true, guideLine.Origin, guideLine.Intersect, float.NaN,
+                measurements.Add(new DistanceMeasurement(dist, pos, true, guideLine.Origin, guideLine.Intersect, null,
                     MeasurementFlags.HideOverlay | MeasurementFlags.Guide));
             }
         }

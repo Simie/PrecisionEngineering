@@ -206,7 +206,7 @@ namespace PrecisionEngineering
             {
                 var dm = m as DistanceMeasurement;
 
-                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure && (float.IsNaN(dm.CurvatureRadius) || !_secondaryDetailEnabled))
+                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure && (!dm.CurvatureRadius.HasValue || !_secondaryDetailEnabled))
                 {
                     return;
                 }
@@ -241,12 +241,12 @@ namespace PrecisionEngineering
                         }
                     }
                 }
-                if (_secondaryDetailEnabled && !float.IsNaN(dm.CurvatureRadius))
+                if (_secondaryDetailEnabled && dm.CurvatureRadius.HasValue)
                 {
                     //We only need to add a newline if there's already text in there.
                     if (dist.Length > 0)
                         dist += "\n";
-                    dist += string.Format("(Radius: {0})", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius, _secondaryDetailEnabled));
+                    dist += string.Format("(Radius: {0})", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius.Value, _secondaryDetailEnabled));
                 }
 
 

@@ -103,7 +103,7 @@ namespace PrecisionEngineering.Data
                 if (netTool.ControlPointsCount == 1) //it's straight.
                     flags |= MeasurementFlags.Grade;
 
-                measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, float.NaN, flags));
+                measurements.Add(new DistanceMeasurement(dist, pos, true, p1, p2, null, flags));
             }
         }
 
@@ -220,7 +220,7 @@ namespace PrecisionEngineering.Data
             if (found && Mathf.Sqrt(minDist) > Settings.MinimumDistanceMeasure)
             {
                 measurements.Add(new DistanceMeasurement(Vector3.Distance(p1, p), Vector3Extensions.Average(p1, p), true,
-                    p1, p, float.NaN,
+                    p1, p, null,
                     MeasurementFlags.Secondary));
             }
         }
