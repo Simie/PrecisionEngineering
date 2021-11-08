@@ -35,7 +35,12 @@ namespace PrecisionEngineering.Data
         /// Indicate that this measurement is used for snapping and should be visable when
         /// snapping is enabled.
         /// </summary>
-        Snap = 1 << 6
+        Snap = 1 << 6,
+
+        /// <summary>
+        /// Indicate that this measurement should include a grade readout.
+        /// </summary>
+        Grade = 1 << 7,
     }
 
     internal abstract class Measurement

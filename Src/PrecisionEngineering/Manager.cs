@@ -206,7 +206,7 @@ namespace PrecisionEngineering
             {
                 var dm = m as DistanceMeasurement;
 
-                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure)
+                if (Mathf.Abs(dm.Length) < Settings.MinimumDistanceMeasure && (!dm.CurvatureRadius.HasValue || !_secondaryDetailEnabled))
                 {
                     return;
                 }
@@ -215,26 +215,40 @@ namespace PrecisionEngineering
 
                 var label = _ui.GetMeasurementLabel();
 
-                string dist;
+                string dist = "";
 
-                if ((dm.Flags & MeasurementFlags.Height) != 0)
+                if (Mathf.Abs(dm.Length) > Settings.MinimumDistanceMeasure)
                 {
-                    dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
-                }
-                else
-                {
-                    dist = StringUtil.GetDistanceMeasurementString(dm.Length, _secondaryDetailEnabled);
-
-                    if (_secondaryDetailEnabled)
+                    if ((dm.Flags & MeasurementFlags.Height) != 0)
                     {
-                       var heightdiff = (int) dm.RelativeHeight.RoundToNearest(1);
+                        dist = string.Format("H: {0}", StringUtil.GetHeightMeasurementString(dm.Length));
 
-                        if (Mathf.Abs(heightdiff) > 0)
+                    }
+                    else
+                    {
+                        dist = StringUtil.GetDistanceMeasurementString(dm.Length, _secondaryDetailEnabled);
+
+                        if (_secondaryDetailEnabled)
                         {
-                            dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
+                            var heightdiff = (int)dm.RelativeHeight.RoundToNearest(1);
+
+                            if (Mathf.Abs(heightdiff) > 0)
+                            {
+                                dist += string.Format("\n(Elev: {0})", StringUtil.GetHeightMeasurementString(heightdiff));
+                                if ((dm.Flags & MeasurementFlags.Grade) != 0)
+                                    dist += string.Format("\n(Grade: {0})", (heightdiff / dm.Length).ToString("P02"));
+                            }
                         }
                     }
                 }
+                if (_secondaryDetailEnabled && dm.CurvatureRadius.HasValue)
+                {
+                    //We only need to add a newline if there's already text in there.
+                    if (dist.Length > 0)
+                        dist += "\n";
+                    dist += string.Format("(Radius: {0})", StringUtil.GetDistanceMeasurementString(dm.CurvatureRadius.Value, _secondaryDetailEnabled));
+                }
+
 
                 label.SetValue(dist);
                 label.SetWorldPosition(cameraInfo, DistanceRenderer.GetLabelWorldPosition(dm));

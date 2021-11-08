@@ -5,13 +5,14 @@ namespace PrecisionEngineering.Data
     internal class DistanceMeasurement : Measurement
     {
         public DistanceMeasurement(float length, Vector3 position, bool isStraight, Vector3 startPosition,
-            Vector3 endPosition, MeasurementFlags flags)
+            Vector3 endPosition, float? curvatureRadius, MeasurementFlags flags)
             : base(position, flags)
         {
             Length = length;
             IsStraight = isStraight;
             StartPosition = startPosition;
             EndPosition = endPosition;
+            CurvatureRadius = curvatureRadius;
         }
 
         /// <summary>
@@ -33,6 +34,11 @@ namespace PrecisionEngineering.Data
         /// End position of the distance measurement.
         /// </summary>
         public Vector3 EndPosition { get; }
+
+        /// <summary>
+        /// Radius of curvature at the point
+        /// </summary>
+        public float? CurvatureRadius { get; }
 
         /// <summary>
         /// Difference in height between the StartPosition and EndPosition.
